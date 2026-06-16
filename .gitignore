@@ -1,0 +1,29 @@
+# Learning Companion
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtualenv
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+*.db
+*.db-wal
+*.db-shm
+*.pdf
+*.docx
+!.gitkeep

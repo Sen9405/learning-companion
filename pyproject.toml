@@ -1,0 +1,70 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "learning-companion"
+version = "3.0.0"
+description = "Multi-agent learning note generator — LangGraph + DeepSeek"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "MIT"}
+authors = [
+    {name = "Dmitry (sen)", email = "dmitry@example.com"},
+]
+keywords = ["langgraph", "learning", "ai-agent", "deepseek", "notes"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Education",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "openai>=1.0",
+    "langgraph>=0.4",
+    "httpx",
+    "beautifulsoup4>=4.12",
+]
+
+[project.optional-dependencies]
+youtube = ["yt-dlp>=2024"]
+pdf = ["PyMuPDF>=1.25"]
+postgres = ["psycopg2-binary>=2.9"]
+tracing = [
+    "opentelemetry-sdk>=1.28",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.28",
+    "opentelemetry-instrumentation-requests>=0.49b",
+]
+all = [
+    "yt-dlp>=2024",
+    "PyMuPDF>=1.25",
+    "psycopg2-binary>=2.9",
+    "opentelemetry-sdk>=1.28",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.28",
+    "opentelemetry-instrumentation-requests>=0.49b",
+]
+
+[project.urls]
+Homepage = "https://github.com/sen/learning-companion"
+Repository = "https://github.com/sen/learning-companion"
+Documentation = "https://github.com/sen/learning-companion#readme"
+
+[project.scripts]
+learning-companion = "learning_companion.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["learning_companion*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.coverage.run]
+source = ["src/learning_companion"]
+omit = ["*/tests/*"]

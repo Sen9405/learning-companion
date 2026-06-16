@@ -1,0 +1,33 @@
+{
+  "name": "learning-companion",
+  "description": "Phase 2 Learning Companion Agent — анализ YouTube видео и статей, создание учебных заметок в Obsidian, генерация вопросов для проверки знаний",
+  "version": "3.0.0",
+  "commands": {
+    "run": {
+      "description": "Запустить анализ контента",
+      "usage": "python3 ~/ai-engineer-agent-roadmap-2026/learning_companion_v2.py run --url <URL>",
+      "examples": [
+        "python3 learning_companion_v2.py run --url \"https://youtu.be/...\"",
+        "python3 learning_companion_v2.py run --url \"https://arxiv.org/...\"",
+        "python3 learning_companion_v2.py run --text \"some text to analyze\"",
+        "python3 learning_companion_v2.py run --url \"...\" --trace"
+      ]
+    },
+    "resume": {
+      "description": "Продолжить после HITL (human-in-the-loop interrupt)",
+      "usage": "python3 ~/ai-engineer-agent-roadmap-2026/learning_companion_v2.py resume <run_id> <command>",
+      "commands": [
+        "resume-analyst — принять анализ и перейти к сохранению",
+        "reject-analyst — отклонить анализ, завершить",
+        "save-writer — сохранить заметку в Obsidian",
+        "skip-save — пропустить сохранение"
+      ]
+    },
+    "check": {
+      "description": "Сгенерировать вопросы для проверки знаний по заметке",
+      "usage": "python3 ~/ai-engineer-agent-roadmap-2026/learning_companion_v2.py check [path_to_note]",
+      "note": "Без аргумента использует последнюю обработанную заметку. Вопросы отправляются в Telegram."
+    }
+  },
+  "workflow": "run → скачивает контент → анализирует → HITL (подтверди анализ) → сохраняет в Obsidian → HITL (подтверди сохранение) → полный обзор в Telegram → когда скажешь 'я изучил' → check → вопросы в Telegram → отвечаешь → я проверяю и поясняю"
+}
