@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from langgraph.checkpoint.postgres import PostgresSaver
+try:
+    from langgraph.checkpoint.postgres import PostgresSaver
+    HAS_POSTGRES = True
+except ImportError:
+    PostgresSaver = None
+    HAS_POSTGRES = False
 from langgraph.constants import END
 from langgraph.graph import StateGraph
 
@@ -39,7 +44,7 @@ def build_graph() -> StateGraph:
 
 
 def compile_agent(
-    checkpointer: PostgresSaver | None = None,
+    checkpointer: Any | None = None,
 ) -> Any:
     """Compile the agent with optional PostgresSaver persistence."""
     graph = build_graph()
