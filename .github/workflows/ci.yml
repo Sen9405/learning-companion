@@ -12,6 +12,7 @@ concurrency:
 
 env:
   PYTHONUNBUFFERED: "1"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   lint:
@@ -55,23 +56,15 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
       - name: Install project with test deps
         run: |
-          uv pip install --system ".[all]" pytest pytest-cov
+          uv pip install --system -e ".[all]" pytest pytest-cov
 
       - name: Run tests with coverage
         run: |
           pytest tests/ -v --tb=short --cov=src/learning_companion --cov-report=term-missing
         env:
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY || 'sk-test-key-placeholder' }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY || 'placeholder' }}
 
   test-no-extras:
     name: Test (base deps only)
@@ -92,10 +85,10 @@ jobs:
 
       - name: Install base project (no extras)
         run: |
-          uv pip install --system "." pytest
+          uv pip install --system -e "." pytest
 
       - name: Run tests (base)
         run: |
           pytest tests/ -v --tb=short
         env:
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY || 'sk-test-key-placeholder' }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY || 'placeholder' }}
