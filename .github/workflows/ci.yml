@@ -53,7 +53,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          python -m pytest tests/ -v --tb=long --cov=src/learning_companion --cov-report=term-missing
+          PYTHONPATH=src python -m pytest tests/ -v --tb=long --cov=src/learning_companion --cov-report=term-missing
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY || 'placeholder' }}
 
@@ -76,6 +76,6 @@ jobs:
 
       - name: Run tests
         run: |
-          python -m pytest tests/ -v --tb=long
+          PYTHONPATH=src python -m pytest tests/ -v --tb=long
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY || 'placeholder' }}
