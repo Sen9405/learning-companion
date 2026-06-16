@@ -42,6 +42,7 @@ class TestLlMCall:
         reset_counters()
         import learning_companion.llm as llm_mod
         llm_mod._client = None
+        llm_mod.DEEPSEEK_API_KEY = "test-key"
 
         # Mock the API response
         mock_client = MagicMock()
@@ -59,10 +60,6 @@ class TestLlMCall:
         mock_response.usage = mock_usage
 
         mock_client.chat.completions.create.return_value = mock_response
-
-        # Set API key so _get_client doesn't fail
-        import os
-        os.environ["DEEPSEEK_API_KEY"] = "test-key"
 
         text, meta = llm_call("system prompt", [{"role": "user", "content": "hi"}])
 
@@ -101,8 +98,8 @@ class TestLlMCall:
 
         mock_client.chat.completions.create.return_value = mock_response
 
-        os.environ["DEEPSEEK_API_KEY"] = "test-key"
-
+        import learning_companion.llm as llm_mod
+        llm_mod.DEEPSEEK_API_KEY = "test-key"
         text, meta = llm_call("test", [])
         assert text == ""
 
@@ -111,6 +108,7 @@ class TestLlMCall:
         reset_counters()
         import learning_companion.llm as llm_mod
         llm_mod._client = None
+        llm_mod.DEEPSEEK_API_KEY = "test-key"
 
         mock_client = MagicMock()
         mock_openai.return_value = mock_client
@@ -125,7 +123,8 @@ class TestLlMCall:
 
         mock_client.chat.completions.create.return_value = mock_response
 
-        os.environ["DEEPSEEK_API_KEY"] = "test-key"
+        import learning_companion.llm as llm_mod
+        llm_mod.DEEPSEEK_API_KEY = "test-key"
 
         llm_call("sys", [], temperature=0.7)
 
