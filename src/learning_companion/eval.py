@@ -8,20 +8,12 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 from pathlib import Path
 from typing import Any
 
 from learning_companion.graph import make_initial_state
 from learning_companion.graph.builder import compile_agent
-from learning_companion.graph.nodes import (
-    analyst_node,
-    fetcher_node,
-    has_content,
-    planner_node,
-    writer_node,
-)
 from learning_companion.llm import llm_call, reset_counters
 
 # ---------------------------------------------------------------------------
@@ -161,7 +153,7 @@ def run_eval(golden_path: str, threshold: float = 0.5) -> dict:
         note = state.get("note", "")
 
         if not note:
-            print(f"  ❌ No note generated")
+            print("  No note generated")
             results.append({**example, "status": "fail", "error": "no note", "score": 0.0})
             continue
 
@@ -215,7 +207,7 @@ def run_eval(golden_path: str, threshold: float = 0.5) -> dict:
     with open(report_path, "w") as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
     print(f"\n{'='*60}")
-    print(f"📊 EVAL RESULTS")
+    print("📊 EVAL RESULTS")
     print(f"  Passed: {passed_count}/{len(golden)}")
     print(f"  Avg basic score: {avg_basic:.3f}")
     print(f"  Avg judge score: {avg_judge:.3f}")
