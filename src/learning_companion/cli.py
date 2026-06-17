@@ -36,13 +36,25 @@ def _get_checkpointer() -> Any:
     """Get PostgresSaver checkpointer, or None if unavailable."""
     try:
         from langgraph.checkpoint.postgres import PostgresSaver
+        from psycopg import Connection
 
         pg_dsn = os.environ.get("PG_DSN", "")
         if not pg_dsn:
+            # Try Unix socket (peer auth) first
+            for socket_dir in ["/var/run/postgresql", "/run/postgresql"]:
+                if os.path.exists(socket_dir):
+                    dsn = f"postgresql://sen@/learning_companion?host={socket_dir}"
+                    try:
+                        conn = Connection.connect(dsn)
+                        cp = PostgresSaver(conn=conn)
+                        cp.setup()
+                        return cp
+                    except Exception:
+                        continue
             return None
 
-        checkpointer = PostgresSaver.from_conn_string(pg_dsn)
-        # Initialize tables if needed
+        conn = Connection.connect(pg_dsn)
+        checkpointer = PostgresSaver(conn=conn)
         try:
             checkpointer.setup()
         except Exception:

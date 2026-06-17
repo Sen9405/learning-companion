@@ -16,7 +16,10 @@ class LearningState(TypedDict):
     content: str  # сырой контент после fetcher
     analysis: str  # анализ после analyst
     note: str  # заметка после writer
-    questions_list: str  # вопросы для проверки
+    questions_list: str  # вопросы для проверки (formatted)
+    questions: list[dict]  # вопросы (raw, для LTM)
+    concepts: list[dict]  # концепты (raw, для LTM)
+    glossary: list[dict]  # глоссарий (raw, для LTM)
     telegram_note: str  # заметка без вопросов (для отправки)
 
     # Мета-информация
@@ -52,6 +55,9 @@ def make_initial_state(
         "analysis": "",
         "note": "",
         "questions_list": "",
+        "questions": [],
+        "concepts": [],
+        "glossary": [],
         "telegram_note": "",
         "run_id": run_id,
         "source_type": "text",
