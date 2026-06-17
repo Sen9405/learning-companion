@@ -1,65 +1,115 @@
-# AI Engineer Agent Roadmap 2026 — Learning Companion
+# Learning Companion
 
-> Phase 2 проект: LangGraph-агент для анализа контента (YouTube, статьи, PDF), создания учебных заметок в Obsidian,
-> проверки знаний через вопросы, с Long-Term Memory на PostgreSQL и Telegram-интеграцией.
+[![CI](https://github.com/Sen9405/learning-companion/actions/workflows/ci.yml/badge.svg)](https://github.com/Sen9405/learning-companion/actions/workflows/ci.yml)
 
-## Состав проекта
+A LangGraph-powered agent that analyzes content from YouTube, articles, and PDFs — generates structured learning notes in Obsidian, tests your knowledge with questions, and keeps long-term memory of what you've learned.
 
-```
-📁 Learning Companion/
-├── skill.json               — конфиг навыка Hermes для запуска агента
-📄 learning_companion_v2.py  — главный агент (LangGraph граф, LTM, Telegram, HITL) [1552 строки, 61 КБ]
-📄 telegram_sender.py        — утилита отправки сообщений в Telegram
-📄 agent-raw.py              — Phase 1: сырой agent loop на DeepSeek API
-📄 agent-litellm.py          — Phase 1: agent loop через LiteLLM
-📄 agent-sdk.py              — Phase 1: agent loop через OpenAI SDK
-📄 gen_phase0_docx.py        — генератор DOCX для Phase 0
-📄 make_docx.py              — вспомогательный генератор DOCX
-📄 MY_ROADMAP.md             — персонализированный учебный план
-📄 AGENTS.md                 — контекст для Hermes
-📄 README.md                 — этот файл
-```
+**Stack:** Python 3.12+, LangGraph, PostgreSQL, DeepSeek API, Telegram API, Obsidian
 
-## Архитектура агента
+---
 
-**Граф (5 узлов, LangGraph + PostgresSaver):**
+## Architecture
+
+The agent runs as a **5-node LangGraph** with Human-in-the-Loop checkpoints:
 
 ```
-planner → fetcher → analyst → [approve ⏸️ HITL] → writer → [approve_save ⏸️ HITL] → END
+planner → fetcher → analyst → [approve ⏸️] → writer → [approve_save ⏸️] → END
 ```
 
-**Ключевые компоненты:**
-- **Long-Term Memory** — PostgreSQL таблица `notes` + JSON кэш на файле
-- **Human-in-the-Loop** — две точки паузы: подтверждение анализа и подтверждение сохранения
-- **Telegram** — отправка обзора (без вопросов) и вопросов для проверки знаний
-- **Obsidian** — сохранение заметок в `/home/sen/Obsidian/Learning/Articles/`
+**Core components:**
+- **Long-Term Memory** — PostgreSQL `notes` table + JSON cache
+- **Human-in-the-Loop** — two pause points: review analysis before saving, confirm before writing
+- **Telegram** — sends summaries (without questions) and knowledge-check questions
+- **Obsidian** — saves notes to `~/Obsidian/Learning/Articles/`
 
-## Использование
+---
+
+## Usage
 
 ```bash
-# Запустить анализ
-python3 learning_companion_v2.py run --url "https://youtu.be/..."
+# Analyze a URL
+learning-companion run --url "https://youtu.be/..."
 
-# Продолжить после HITL
-python3 learning_companion_v2.py resume <run_id> resume-analyst
-python3 learning_companion_v2.py resume <run_id> save-writer
+# Continue after HITL pause
+learning-companion resume <run_id> resume-analyst
+learning-companion resume <run_id> save-writer
 
-# Проверка знаний
-python3 learning_companion_v2.py check
+# Knowledge check
+learning-companion check
 ```
 
-## Зависимости
+---
 
-- Python 3.12+
-- `langgraph`, `langchain`, `httpx`, `openai`, `psycopg2-binary`, `beautifulsoup4`, `yt-dlp`
-- PostgreSQL (БД `learning_companion`)
-- DeepSeek API (ключ в `~/.hermes/.env`)
+## CLI Commands
 
-## Хронология
+| Command | Description |
+|---|---|
+| `run` | Start a new analysis (supports `--url`, `--text`, `--title`, `--language`) |
+| `resume` | Continue an interrupted run (`resume-analyst` or `save-writer`) |
+| `check` | Review recent learning notes |
 
-- **v1** — сырой agent-loop с DeepSeek, фаза 1
-- **v2** — LangGraph граф + PostgresSaver + HITL + LTM + Telegram + Obsidian
+---
 
-## Бекапы
+## Dependencies
 
-Последний бекап: `learning_companion_v2.backup.py` (1552 строки, 61 КБ).
+**Base:**
+- `langgraph`, `openai`, `httpx`, `beautifulsoup4`
+
+**Optional extras:**
+- `youtube` — YouTube transcript support (`yt-dlp`)
+- `pdf` — PDF extraction (`pymupdf`, `marker-pdf`)
+- `postgres` — PostgreSQL persistence (`psycopg2-binary`, `langgraph-checkpoint-postgres`)
+- `tracing` — OpenTelemetry tracing via Arize Phoenix
+- `all` — everything above
+
+Install with extras:
+```bash
+pip install -e ".[all]"
+```
+
+---
+
+## Configuration
+
+Create `~/.hermes/.env` or `~/.env`:
+
+```env
+DEEPSEEK_API_KEY=your_deepseek_key
+TELEGRAM_BOT_TOKEN=your_bot_token
+TELEGRAM_CHAT_ID=your_chat_id
+```
+
+---
+
+## Testing
+
+```bash
+# All tests
+python -m pytest tests/ -v
+
+# Lint
+ruff check src/ tests/
+```
+
+The CI pipeline runs ruff linting and pytest across two matrix configurations: all extras and base only.
+
+---
+
+## Project Structure
+
+```
+src/learning_companion/
+├── __init__.py         — package metadata
+├── cli.py              — CLI entry point (argparse)
+├── llm.py              — DeepSeek client with cost tracking
+├── telegram.py         — Telegram send helpers
+├── memory.py           — Long-Term Memory (Postgres/SQLite)
+├── utils.py            — utilities (save/load state)
+└── graph/
+    ├── __init__.py     — LearningState TypedDict
+    ├── nodes.py        — planner/fetcher/analyst/writer nodes
+    ├── builder.py      — build_graph() + compile_agent()
+    └── tracing.py      — OpenTelemetry tracing setup
+tests/                  — 66 tests across all modules
+legacy/                 — original monolith scripts
+```
