@@ -29,8 +29,15 @@ class LongTermMemory:
     ):
         self.db_url = db_url or os.environ.get(
             "PG_DSN",
-            "postgresql://localhost:5432/learning_companion",
+            "",
         )
+        if not self.db_url:
+            for socket_dir in ["/var/run/postgresql", "/run/postgresql"]:
+                if os.path.exists(socket_dir):
+                    self.db_url = f"postgresql://sen@/learning_companion?host={socket_dir}"
+                    break
+            if not self.db_url:
+                self.db_url = "postgresql://localhost:5432/learning_companion"
         self._conn = None
         self._cache: dict[str, Any] | None = None
         self._cache_path = os.path.join(

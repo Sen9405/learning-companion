@@ -29,16 +29,20 @@ FETCHER_SYSTEM = """Ты — ассистент-извлекатель. Твоя
 
 ANALYST_SYSTEM = """Ты — ассистент-аналитик. Проанализируй контент и выдели:
 
-1. **Ключевые концепты** (5-10 терминов с пояснениями)
+1. **Ключевые концепты** (5-10 терминов с определениями)
 2. **Связи между концептами** (как они связаны)
 3. **Практические выводы** (как применить)
-4. **Вопросы для проверки знаний** (5-7 вопросов с ответами)
-5. **Глоссарий** (ключевые термины)
+4. **Вопросы для проверки знаний** (7-10 вопросов с ответами)
+5. **Глоссарий** (ключевые термины с краткими определениями)
+
+ВАЖНО: поле "analysis" должно быть ПОДРОБНЫМ (2000-5000 символов).
 
 Ответь в формате JSON:
 {{
-  "analysis": "полный анализ текстом",
-  "concepts": ["concept1", "concept2", ...],
+  "analysis": "подробный анализ текстом на 2000-5000 символов",
+  "concepts": [
+    {{"term": "название", "definition": "определение"}}
+  ],
   "questions": [
     {{"q": "вопрос?", "a": "ответ"}}
   ],
@@ -221,9 +225,12 @@ def _fetch_web(url: str) -> str:
             tag.decompose()
         text = soup.get_text(separator="\n", strip=True)
         # Ограничиваем длину
-        return text[:15000]
+        return text[:50000]
     except Exception as e:
         return f"[Web fetch error: {e}]"
+
+
+MAX_FETCH_CHARS = 60000
 
 
 def _fetch_pdf(url: str) -> str:
@@ -246,7 +253,7 @@ def _fetch_pdf(url: str) -> str:
             for page in doc:
                 text += page.get_text()
             doc.close()
-            return text[:15000]
+            return text[:MAX_FETCH_CHARS]
         except ImportError:
             pass
 
@@ -254,14 +261,14 @@ def _fetch_pdf(url: str) -> str:
             import pdfplumber
             with pdfplumber.open(pdf_path) as pdf:
                 text = "\n".join(page.extract_text() or "" for page in pdf.pages)
-            return text[:15000]
+            return text[:MAX_FETCH_CHARS]
         except ImportError:
             pass
 
         try:
             from pdfminer.high_level import extract_text
             text = extract_text(pdf_path)
-            return text[:15000]
+            return text[:MAX_FETCH_CHARS]
         except ImportError:
             pass
 
@@ -277,10 +284,10 @@ def analyst_node(state: LearningState) -> dict[str, Any]:
     language = state.get("language", "ru")
 
     system = ANALYST_SYSTEM
-    prompt = f"Language: {language}\n\nContent:\n{content[:12000]}"
+    prompt = f"Language: {language}\n\nContent:\n{content[:60000]}"
 
     resp, meta = llm_call(system, [{"role": "user", "content": prompt}],
-                          response_model=None, max_tokens=4096)
+                          response_model=None, max_tokens=8192)
 
     # Парсим JSON из ответа
     try:
@@ -320,6 +327,9 @@ def analyst_node(state: LearningState) -> dict[str, Any]:
 
     return {
         "analysis": analysis,
+        "concepts": concepts,
+        "questions": questions,
+        "glossary": glossary,
         "questions_list": questions_text,
         "stage": "writer",
     }
