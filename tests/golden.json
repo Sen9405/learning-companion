@@ -1,0 +1,84 @@
+[
+  {
+    "id": "gold-001",
+    "name": "YouTube видео про ИИ и рынок труда",
+    "input": {
+      "text": "Искусственный интеллект — это мультипликатор компетенций: он усиливает продуктивность компетентного человека и многократно увеличивает некомпетентность того, кто не разбирается в своей области. Human in the Loop — концепция, при которой человек остаётся оператором, принимающим финальные решения, так как ИИ не может нести юридическую ответственность. Деквалификация vs дисквалификация: деквалификация — станки снижают требования к квалификации человека; дисквалификация — человек становится не нужен. Промпт-инжиниринг — умение формулировать запросы к ИИ. Коммодити vs люкс — автоматизированные сервисы становятся стандартом, а живое человеческое общение — дорогим люксом. ИИ сравнивают с электричеством — фундаментальная технология, меняющая все сферы. В IT-компаниях вводят KPI на ежедневное использование ИИ. Дети без навыков программирования создают игры через голосовые команды. Профессии проходят три стадии: мастер, деквалификация, дисквалификация. Под угрозой: программисты начального уровня, юристы (ассистенты), операторы колл-центров, дизайнеры, водители. Защищены: врачи, учителя, судьи, адвокаты. ChatGPT не может построить бизнес — это делает человек. Примеры заработка: курсы по ChatGPT, фриланс с AI-инструментами ($10-30k/мес). Прогноз: AI создаст бизнес >$1 млрд с одним сотрудником.",
+      "title": "Как ИИ меняет рынок труда",
+      "language": "ru"
+    },
+    "expected": {
+      "min_note_length": 1500,
+      "must_have_concepts": true,
+      "must_have_questions": true,
+      "must_have_sections": ["Human in the Loop", "деквалификация", "заработ"]
+    }
+  },
+  {
+    "id": "gold-002",
+    "name": "Короткая заметка про AI агентов",
+    "input": {
+      "text": "AI agents are autonomous systems that can perceive their environment and take actions to achieve specific goals. They combine a language model with tools and memory. The key patterns are: augmented LLM (model + tools + memory), workflow (predictable code paths) vs agent (model decides control flow), and orchestrator-worker (a manager delegates to specialized sub-agents). The most common architectural primitives are: tool use (function calling), structured output (JSON mode), multi-step reasoning (chain-of-thought), and context management (prompt engineering, RAG).",
+      "title": "What are AI Agents",
+      "language": "en"
+    },
+    "expected": {
+      "min_note_length": 800,
+      "must_have_concepts": true,
+      "language": "en"
+    }
+  },
+  {
+    "id": "gold-003",
+    "name": "Статья про автоматизацию бизнеса",
+    "input": {
+      "text": "Автоматизация бизнеса с помощью AI уже не опция, а необходимость. Компании, внедряющие AI-инструменты, получают 20-40% рост продуктивности. Основные направления: автоматизация документооборота, чат-боты для поддержки клиентов, AI-аналитика продаж, генерация отчётов. Рынок AI-услуг для бизнеса вырос на 300% за 2 года. Главный барьер — недоверие руководства и отсутствие специалистов, умеющих интегрировать AI. Пример: внедрение AI-ассистента в колл-центр снизило нагрузку на операторов на 60%.",
+      "title": "AI в бизнесе",
+      "language": "ru"
+    },
+    "expected": {
+      "min_note_length": 1000,
+      "must_have_concepts": true,
+      "must_have_questions": true
+    }
+  },
+  {
+    "id": "gold-004",
+    "name": "Короткая заметка про Python",
+    "input": {
+      "text": "Python is a high-level, general-purpose programming language. Its design philosophy emphasizes code readability with the use of significant indentation. Python is dynamically typed and garbage-collected. It supports multiple programming paradigms, including structured, object-oriented and functional programming.",
+      "title": "Python Programming Language",
+      "language": "en"
+    },
+    "expected": {
+      "min_note_length": 300,
+      "language": "en"
+    }
+  },
+  {
+    "id": "gold-005",
+    "name": "Перевод и локализация",
+    "input": {
+      "text": "Нейросети революционизировали перевод и локализацию. DeepL и GPT-4 обеспечивают качество, близкое к человеческому, для основных языковых пар. Скорость перевода выросла в 10 раз. Однако культурная адаптация и локализация маркетинговых текстов всё ещё требует человека-редактора. Гибридный подход (AI + human review) становится стандартом индустрии. Стоимость локализации сайта средней сложности снизилась с $5000 до $500.",
+      "title": "AI в переводе",
+      "language": "ru"
+    },
+    "expected": {
+      "min_note_length": 600,
+      "must_have_concepts": true
+    }
+  },
+  {
+    "id": "gold-006",
+    "name": "Очень короткий вводный текст",
+    "input": {
+      "text": "Обучение с подкреплением (Reinforcement Learning) — метод машинного обучения, при котором агент учится принимать решения, взаимодействуя со средой. Агент получает награду за правильные действия и штраф за неправильные. Цель — максимизировать суммарную награду. Примеры: AlphaGo, робототехника, игры.",
+      "title": "Reinforcement Learning",
+      "language": "ru"
+    },
+    "expected": {
+      "min_note_length": 200,
+      "must_have_concepts": true
+    }
+  }
+]

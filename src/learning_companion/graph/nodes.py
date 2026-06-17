@@ -278,30 +278,91 @@ def _fetch_pdf(url: str) -> str:
         return f"[PDF fetch error: {e}]"
 
 
+# Константы для chunking
+CHUNK_SIZE = 10000       # размер одного чанка в символах
+CHUNK_OVERLAP = 500      # перекрытие между чанками
+CHUNK_SUMMARIZE_SYSTEM = """Ты — ассистент-анализатор фрагмента. Проанализируй этот фрагмент текста и выдели:
+
+1. Основные темы и идеи (2-5 пунктов)
+2. Ключевые термины с определениями
+3. Практические выводы
+
+Ответь кратко (300-500 символов), только факты по существу."""
+
+CHUNK_MERGE_SYSTEM = """Ты — ассистент-синтезатор. У тебя есть анализ нескольких фрагментов одного материала.
+Объедини их в целостный анализ по следующей структуре:
+
+1. **Ключевые концепты** (5-10 терминов с определениями)
+2. **Связи между концептами** (как они связаны)
+3. **Практические выводы** (как применить)
+4. **Вопросы для проверки знаний** (7-10 вопросов с ответами)
+5. **Глоссарий** (ключевые термины с краткими определениями)
+
+ВАЖНО: поле "analysis" должно быть ПОДРОБНЫМ (2000-5000 символов).
+
+Ответь в формате JSON:
+{{
+  "analysis": "подробный анализ текстом на 2000-5000 символов",
+  "concepts": [
+    {{"term": "название", "definition": "определение"}}
+  ],
+  "questions": [
+    {{"q": "вопрос?", "a": "ответ"}}
+  ],
+  "glossary": [
+    {{"term": "термин", "definition": "определение"}}
+  ]
+}}"""
+
+
+def _chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> list[str]:
+    """Разбивает текст на перекрывающиеся чанки по границам предложений."""
+    if len(text) <= chunk_size:
+        return [text]
+
+    chunks = []
+    start = 0
+    while start < len(text):
+        end = min(start + chunk_size, len(text))
+        if end < len(text):
+            # Ищем границу предложения (точка + пробел + заглавная)
+            for sep in [". ", "! ", "? ", ".\n", "\n\n"]:
+                boundary = text.rfind(sep, start + chunk_size // 2, end)
+                if boundary != -1:
+                    end = boundary + len(sep)
+                    break
+        chunks.append(text[start:end])
+        start = end - overlap if end - overlap > start else end
+    return chunks
+
+
 def analyst_node(state: LearningState) -> dict[str, Any]:
-    """Анализирует контент и извлекает концепты."""
+    """Анализирует контент (с поддержкой chunking для длинных текстов)."""
     content = state.get("content", "")
     language = state.get("language", "ru")
 
-    system = ANALYST_SYSTEM
-    prompt = f"Language: {language}\n\nContent:\n{content[:60000]}"
+    # Если контент короткий — прямой анализ (старое поведение)
+    if len(content) <= CHUNK_SIZE:
+        system = ANALYST_SYSTEM
+        prompt = f"Language: {language}\n\nContent:\n{content}"
+        resp, meta = llm_call(system, [{"role": "user", "content": prompt}],
+                               response_model=None, max_tokens=8192)
+        data = _parse_analyst_response(resp)
+    else:
+        # Длинный контент — разбиваем на чанки, анализируем каждый, собираем
+        chunks = _chunk_text(content)
+        partials = []
+        total_chunks = len(chunks)
+        for i, chunk in enumerate(chunks):
+            prompt = f"Language: {language}\n\nFragment {i+1}/{total_chunks}:\n{chunk}"
+            resp, _ = llm_call(CHUNK_SUMMARIZE_SYSTEM, [{"role": "user", "content": prompt}],
+                                response_model=None, max_tokens=2048)
+            partials.append(f"--- Fragment {i+1}/{total_chunks} ---\n{resp}")
 
-    resp, meta = llm_call(system, [{"role": "user", "content": prompt}],
-                          response_model=None, max_tokens=8192)
-
-    # Парсим JSON из ответа
-    try:
-        data = json.loads(resp)
-    except json.JSONDecodeError:
-        # Пробуем найти JSON в ответе
-        match = re.search(r"\{.*\}", resp, re.DOTALL)
-        if match:
-            try:
-                data = json.loads(match.group())
-            except json.JSONDecodeError:
-                data = {"analysis": resp, "concepts": [], "questions": [], "glossary": []}
-        else:
-            data = {"analysis": resp, "concepts": [], "questions": [], "glossary": []}
+        merge_prompt = f"Language: {language}\n\nPartial analyses:\n\n{chr(10).join(partials)}"
+        resp, meta = llm_call(CHUNK_MERGE_SYSTEM, [{"role": "user", "content": merge_prompt}],
+                               response_model=None, max_tokens=8192)
+        data = _parse_analyst_response(resp)
 
     analysis = data.get("analysis", resp)
     concepts = data.get("concepts", [])
@@ -333,6 +394,20 @@ def analyst_node(state: LearningState) -> dict[str, Any]:
         "questions_list": questions_text,
         "stage": "writer",
     }
+
+
+def _parse_analyst_response(resp: str) -> dict:
+    """Парсит JSON из ответа analyst, с fallback на raw text."""
+    try:
+        return json.loads(resp)
+    except json.JSONDecodeError:
+        match = re.search(r"\{.*\}", resp, re.DOTALL)
+        if match:
+            try:
+                return json.loads(match.group())
+            except json.JSONDecodeError:
+                pass
+        return {"analysis": resp, "concepts": [], "questions": [], "glossary": []}
 
 
 def _format_questions(questions: list[dict], language: str) -> str:

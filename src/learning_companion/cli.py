@@ -380,6 +380,13 @@ def main() -> None:
     check_p = sub.add_parser("check", help="Generate review questions from LTM")
     check_p.add_argument("--limit", type=int, default=5, help="Number of recent notes to use")
 
+    # Eval
+    eval_p = sub.add_parser("eval", help="Run eval on golden dataset")
+    eval_p.add_argument("--golden", default="tests/golden.json",
+                        help="Path to golden dataset JSON")
+    eval_p.add_argument("--threshold", type=float, default=0.5,
+                        help="Minimum average score to pass")
+
     args = parser.parse_args()
 
     if args.command == "run":
@@ -413,6 +420,12 @@ def main() -> None:
 
     elif args.command == "check":
         run_check(limit=args.limit)
+
+    elif args.command == "eval":
+        from learning_companion.eval import run_eval
+        report = run_eval(args.golden, args.threshold)
+        if report["avg_judge_score"] < args.threshold:
+            sys.exit(1)
 
     else:
         parser.print_help()
