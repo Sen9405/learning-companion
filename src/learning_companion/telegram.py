@@ -50,6 +50,38 @@ def send_telegram(
         return None
 
 
+def send_telegram_pdf(
+    pdf_path: str,
+    token: str | None = None,
+    chat_id: str | None = None,
+) -> dict[str, Any] | None:
+    """Send a PDF file to Telegram as a document."""
+    import httpx
+
+    if not token:
+        token = os.environ.get("TELEGRAM_BOT_TOKEN") or _read_dotenv_key("TELEGRAM_BOT_TOKEN")
+    if not chat_id:
+        chat_id = os.environ.get("TELEGRAM_CHAT_ID") or _read_dotenv_key("TELEGRAM_CHAT_ID")
+
+    if not token or not chat_id:
+        print("[send_telegram_pdf] TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not set, skipping")
+        return None
+
+    if not os.path.exists(pdf_path):
+        print(f"[send_telegram_pdf] File not found: {pdf_path}")
+        return None
+
+    url = f"https://api.telegram.org/bot{token}/sendDocument"
+    try:
+        with open(pdf_path, "rb") as f:
+            resp = httpx.post(url, data={"chat_id": chat_id}, files={"document": f}, timeout=60)
+        resp.raise_for_status()
+        return resp.json()
+    except Exception as e:
+        print(f"[send_telegram_pdf] Error: {e}")
+        return None
+
+
 def send_telegram_long(
     message: str,
     token: str | None = None,

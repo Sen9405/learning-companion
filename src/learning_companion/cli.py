@@ -18,6 +18,7 @@ from learning_companion.telegram import (
     notify_telegram,
     send_telegram,
     send_telegram_long,
+    send_telegram_pdf,
     _strip_questions_section,
 )
 
@@ -147,6 +148,11 @@ def run_agent(
     # Save to Obsidian
     _save_to_obsidian(state)
 
+    # Save and send PDF
+    pdf_path = _save_to_pdf(note=final_note, title=state.get("title", "Learning Note"))
+    if pdf_path:
+        send_telegram_pdf(pdf_path)
+
     return {
         "run_id": run_id,
         "state": state,
@@ -177,6 +183,66 @@ def _save_to_obsidian(state: LearningState) -> None:
         f.write(note)
 
     print(f"[Obsidian] Saved: {filepath}")
+
+
+def _save_to_pdf(note: str, title: str, pdf_dir: str = "/tmp") -> str | None:
+    """Save note as PDF using fpdf2."""
+    if not note:
+        return None
+
+    try:
+        from fpdf import FPDF
+
+        safe_title = "".join(c if c.isalnum() or c in " _-" else "_" for c in title)[:60]
+        pdf_path = os.path.join(pdf_dir, f"{safe_title}.pdf")
+
+        pdf = FPDF()
+        pdf.add_font("DejaVu", "", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", uni=True)
+        pdf.add_font("DejaVu", "B", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", uni=True)
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.add_page()
+
+        # Title
+        pdf.set_font("DejaVu", "B", 16)
+        pdf.multi_cell(180, 8, title)
+
+        pdf.ln(4)
+        pdf.set_font("DejaVu", "", 11)
+
+        for line in note.split("\n"):
+            line = line.strip()
+            if not line:
+                pdf.ln(4)
+            elif line.startswith("# ") or line.startswith("## "):
+                is_h1 = line.startswith("# ")
+                pdf.ln(2)
+                pdf.set_font("DejaVu", "B", 14 if is_h1 else 12)
+                pdf.multi_cell(180, 7, line.lstrip("# ").strip())
+                pdf.set_font("DejaVu", "", 11)
+            elif line.startswith("### "):
+                pdf.ln(1)
+                pdf.set_font("DejaVu", "B", 11)
+                pdf.multi_cell(180, 7, line.lstrip("#").strip())
+                pdf.set_font("DejaVu", "", 11)
+            elif line.startswith("- ") or line.startswith("* "):
+                pdf.set_x(pdf.l_margin + 5)
+                pdf.multi_cell(175, 6, "• " + line[2:])
+            elif len(line) > 1 and line[0].isdigit() and ". " in line[:4]:
+                pdf.set_x(pdf.l_margin + 5)
+                pdf.multi_cell(175, 6, line)
+            elif line.startswith("> "):
+                pdf.set_fill_color(245, 245, 245)
+                pdf.set_x(pdf.l_margin + 5)
+                pdf.multi_cell(175, 6, line[2:], fill=True)
+            else:
+                pdf.multi_cell(180, 6, line)
+
+        pdf.output(pdf_path)
+        print(f"[PDF] Saved: {pdf_path} ({os.path.getsize(pdf_path)} bytes)")
+        return pdf_path
+    except Exception as e:
+        print(f"[PDF] Error: {e}")
+        return None
 
 
 def resume_agent(
@@ -236,6 +302,11 @@ def resume_agent(
         notify_telegram(f"✅ Note saved!\n{cost_str}", run_id=run_id, stage="done")
 
         _save_to_obsidian(state)
+
+        # Save and send PDF
+        pdf_path = _save_to_pdf(note=final_note, title=state.get("title", "Learning Note"))
+        if pdf_path:
+            send_telegram_pdf(pdf_path)
 
         return {"run_id": run_id, "state": state, "cost": cost_info}
 
