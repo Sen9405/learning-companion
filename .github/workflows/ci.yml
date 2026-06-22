@@ -103,7 +103,7 @@ jobs:
             echo "⚠️ No real API key — skipping eval (placeholder detected)"
             echo '{"skipped": true, "reason": "placeholder API key"}' > eval_report.json
           else
-            PYTHONPATH=src python -m learning_companion eval --golden tests/golden.json --threshold 0.4
+            PYTHONPATH=src python -m learning_companion eval --golden tests/golden.json --threshold 0.5
           fi
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY || 'placeholder' }}

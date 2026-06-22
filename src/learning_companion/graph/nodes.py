@@ -115,16 +115,23 @@ def planner_node(state: LearningState) -> dict[str, Any]:
     else:
         source_type = "text"
 
-    language = state.get("language", "") or _detect_language(text or url)
+    language = state.get("language", "")
+    if not language:
+        # Для YouTube не можем определить язык по URL — откладываем до контента
+        if source_type == "youtube":
+            language = ""
+        else:
+            language = _detect_language(text or url)
 
-    # Пробуем LLM для уточнения
+    # Пробуем LLM для уточнения (но не перезаписываем title, если он уже есть)
     try:
         system = PLANNER_SYSTEM + f"\nLanguage: {language}"
         prompt = f"Source: {url or 'direct text'}\nText preview: {text[:500] if text else 'N/A'}"
         resp, meta = llm_call(system, [{"role": "user", "content": prompt}])
         plan = json.loads(resp)
-        title = plan.get("title_hint", state.get("title", "")) or "Learning Note"
         source_type = plan.get("source_type", source_type)
+        # title берём из переданного state, и только если пуст — из LLM
+        title = state.get("title", "") or plan.get("title_hint", "") or "Learning Note"
     except Exception:
         title = state.get("title", "") or "Learning Note"
 
@@ -144,21 +151,27 @@ def fetcher_node(state: LearningState) -> dict[str, Any]:
 
     content = ""
 
+    youtube_title = ""
     if source_type == "web" and url:
         content = _fetch_web(url)
     elif source_type == "pdf" and url:
         content = _fetch_pdf(url)
     elif source_type == "youtube" and url:
         content = _fetch_youtube(url)
+        youtube_title = _fetch_youtube_title(url)
     elif text:
         content = text
 
     title = state.get("title", "")
-    if not title and content:
-        # Извлекаем первую строку как заголовок
-        lines = content.strip().split("\n")
-        if lines:
-            title = lines[0][:100]
+    # Для YouTube всегда перезаписываем заголовок из yt-dlp
+    if source_type == "youtube" and youtube_title:
+        title = youtube_title
+    elif not title:
+        if content:
+            # Извлекаем первую строку как заголовок
+            lines = content.strip().split("\n")
+            if lines:
+                title = lines[0][:100]
 
     return {
         "content": content,
@@ -178,37 +191,100 @@ def _fetch_youtube(url: str) -> str:
     return f"[YouTube transcript fetch failed for {url}]"
 
 
+def _fetch_youtube_title(url: str) -> str:
+    """Извлекает только заголовок YouTube видео."""
+    import subprocess
+
+    try:
+        result = subprocess.run(
+            ["yt-dlp", "--skip-download", "--print", "title", url],
+            capture_output=True, text=True, timeout=30,
+        )
+        title = result.stdout.strip()
+        if title and not title.startswith("WARNING"):
+            return title
+    except Exception:
+        pass
+    return ""
+
+
 def _exec_yt_dlp(url: str) -> str:
-    """Выполняет yt-dlp для извлечения субтитров."""
+    """Выполняет yt-dlp для извлечения субтитров.
+
+    Возвращает только текст транскрипта (без заголовка).
+    """
+    import re
     import subprocess
     import tempfile
 
-    with tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w") as f:
-        outpath = f.name
+    tmpdir = tempfile.mkdtemp()
+    outtemplate = os.path.join(tmpdir, "subs")
 
     try:
-        subprocess.run(
-            ["yt-dlp", "--write-auto-subs", "--sub-langs", "ru,en",
-             "--skip-download", "--print", "title",
-             "-o", outpath, url],
-            capture_output=True, text=True, timeout=60,
-        )
-        # Получаем субтитры
+        # Скачиваем субтитры в .vtt файл
         result = subprocess.run(
             ["yt-dlp", "--write-auto-subs", "--sub-langs", "ru,en",
-             "--skip-download", "--print", "subtitle",
-             "-o", outpath, url],
-            capture_output=True, text=True, timeout=60,
+             "--skip-download", "--convert-subs", "srt",
+             "-o", outtemplate, url],
+            capture_output=True, text=True, timeout=120,
         )
-        return result.stdout or "[No subtitles found]"
+
+        if result.returncode != 0:
+            # yt-dlp может выдавать warning (старая версия) но всё равно скачать файл
+            # Проверяем по наличию файлов, а не по returncode
+            pass
+
+        # Ищем скачанный файл субтитров
+        vtt_files = sorted([
+            f for f in os.listdir(tmpdir)
+            if f.endswith(".srt") or f.endswith(".vtt")
+        ])
+
+        if not vtt_files:
+            return "[No subtitle files found]"
+
+        # Берём первый (русский если есть, иначе английский)
+        sub_path = os.path.join(tmpdir, vtt_files[0])
+
+        with open(sub_path) as f:
+            raw = f.read()
+
+        # Очищаем от временных меток и HTML-тегов VTT/SRT
+        # Убираем строки с таймкодами
+        lines = []
+        for line in raw.split("\n"):
+            line = line.strip()
+            # Пропускаем пустые, таймкоды, номера строк, WEBVTT заголовок
+            if not line:
+                continue
+            if "-->" in line:
+                continue
+            if re.match(r"^\d+$", line):
+                continue
+            if line.startswith("WEBVTT"):
+                continue
+            if line.startswith("Kind:") or line.startswith("Language:"):
+                continue
+            # Убираем HTML-теги вроде <c> </c>
+            line = re.sub(r"<[^>]+>", "", line)
+            lines.append(line)
+
+        text = "\n".join(lines)
+        if len(text) < 20:
+            return "[Subtitles too short or empty]"
+
+        return text[:15000]
+
     except subprocess.TimeoutExpired:
         return "[YouTube fetch timed out]"
     except Exception as e:
         return f"[YouTube fetch error: {e}]"
     finally:
+        # Чистим временные файлы
+        import shutil
         try:
-            os.unlink(outpath)
-        except OSError:
+            shutil.rmtree(tmpdir)
+        except Exception:
             pass
 
 
@@ -339,7 +415,11 @@ def _chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OV
 def analyst_node(state: LearningState) -> dict[str, Any]:
     """Анализирует контент (с поддержкой chunking для длинных текстов)."""
     content = state.get("content", "")
-    language = state.get("language", "ru")
+    language = state.get("language", "")
+    # Определяем язык по контенту (не по URL — для YouTube)
+    if not language and content:
+        language = _detect_language(content)
+    language = language or "ru"
 
     # Если контент короткий — прямой анализ (старое поведение)
     if len(content) <= CHUNK_SIZE:
@@ -383,7 +463,9 @@ def analyst_node(state: LearningState) -> dict[str, Any]:
     except Exception:
         pass
 
-    # Создаём вопросы для проверки
+    # Создаём вопросы для проверки (с fallback, если не сгенерировались)
+    if not questions and analysis:
+        questions = _generate_questions(analysis, language)
     questions_text = _format_questions(questions, language)
 
     return {
@@ -422,6 +504,25 @@ def _format_questions(questions: list[dict], language: str) -> str:
         if answer:
             lines.append(f"   ||{answer}||")
     return "\n".join(lines)
+
+
+def _generate_questions(analysis: str, language: str) -> list[dict]:
+    """Fallback: генерирует вопросы по анализу, если основная модель не вернула."""
+    try:
+        system = (
+            "Ты — ассистент генерации вопросов для проверки знаний. "
+            "На основе анализа сгенерируй 5 вопросов с ответами.\n"
+            "Ответь строго в JSON: [{\"q\": \"вопрос?\", \"a\": \"ответ\"}]"
+        )
+        prompt = f"Analysis:\n{analysis[:3000]}"
+        resp, meta = llm_call(system, [{"role": "user", "content": prompt}],
+                              response_model=None, max_tokens=2048, temperature=0.7)
+        data = json.loads(resp)
+        if isinstance(data, list):
+            return data
+        return []
+    except Exception:
+        return []
 
 
 def writer_node(state: LearningState) -> dict[str, Any]:

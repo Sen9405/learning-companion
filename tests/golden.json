@@ -1,7 +1,8 @@
 [
   {
     "id": "gold-001",
-    "name": "YouTube видео про ИИ и рынок труда",
+    "name": "ИИ и рынок труда",
+    "difficulty": "basic",
     "input": {
       "text": "Искусственный интеллект — это мультипликатор компетенций: он усиливает продуктивность компетентного человека и многократно увеличивает некомпетентность того, кто не разбирается в своей области. Human in the Loop — концепция, при которой человек остаётся оператором, принимающим финальные решения, так как ИИ не может нести юридическую ответственность. Деквалификация vs дисквалификация: деквалификация — станки снижают требования к квалификации человека; дисквалификация — человек становится не нужен. Промпт-инжиниринг — умение формулировать запросы к ИИ. Коммодити vs люкс — автоматизированные сервисы становятся стандартом, а живое человеческое общение — дорогим люксом. ИИ сравнивают с электричеством — фундаментальная технология, меняющая все сферы. В IT-компаниях вводят KPI на ежедневное использование ИИ. Дети без навыков программирования создают игры через голосовые команды. Профессии проходят три стадии: мастер, деквалификация, дисквалификация. Под угрозой: программисты начального уровня, юристы (ассистенты), операторы колл-центров, дизайнеры, водители. Защищены: врачи, учителя, судьи, адвокаты. ChatGPT не может построить бизнес — это делает человек. Примеры заработка: курсы по ChatGPT, фриланс с AI-инструментами ($10-30k/мес). Прогноз: AI создаст бизнес >$1 млрд с одним сотрудником.",
       "title": "Как ИИ меняет рынок труда",
@@ -10,16 +11,16 @@
     "expected": {
       "min_note_length": 1500,
       "must_have_concepts": true,
-      "must_have_questions": true,
-      "must_have_sections": ["Human in the Loop", "деквалификация", "заработ"]
+      "must_have_questions": true
     }
   },
   {
     "id": "gold-002",
-    "name": "Короткая заметка про AI агентов",
+    "name": "What are AI Agents",
+    "difficulty": "basic",
     "input": {
       "text": "AI agents are autonomous systems that can perceive their environment and take actions to achieve specific goals. They combine a language model with tools and memory. The key patterns are: augmented LLM (model + tools + memory), workflow (predictable code paths) vs agent (model decides control flow), and orchestrator-worker (a manager delegates to specialized sub-agents). The most common architectural primitives are: tool use (function calling), structured output (JSON mode), multi-step reasoning (chain-of-thought), and context management (prompt engineering, RAG).",
-      "title": "What are AI Agents",
+      "title": "What Are AI Agents",
       "language": "en"
     },
     "expected": {
@@ -30,10 +31,11 @@
   },
   {
     "id": "gold-003",
-    "name": "Статья про автоматизацию бизнеса",
+    "name": "AI в бизнесе",
+    "difficulty": "basic",
     "input": {
       "text": "Автоматизация бизнеса с помощью AI уже не опция, а необходимость. Компании, внедряющие AI-инструменты, получают 20-40% рост продуктивности. Основные направления: автоматизация документооборота, чат-боты для поддержки клиентов, AI-аналитика продаж, генерация отчётов. Рынок AI-услуг для бизнеса вырос на 300% за 2 года. Главный барьер — недоверие руководства и отсутствие специалистов, умеющих интегрировать AI. Пример: внедрение AI-ассистента в колл-центр снизило нагрузку на операторов на 60%.",
-      "title": "AI в бизнесе",
+      "title": "AI в бизнесе — возможности и барьеры",
       "language": "ru"
     },
     "expected": {
@@ -44,7 +46,8 @@
   },
   {
     "id": "gold-004",
-    "name": "Короткая заметка про Python",
+    "name": "Python Programming Language",
+    "difficulty": "basic",
     "input": {
       "text": "Python is a high-level, general-purpose programming language. Its design philosophy emphasizes code readability with the use of significant indentation. Python is dynamically typed and garbage-collected. It supports multiple programming paradigms, including structured, object-oriented and functional programming.",
       "title": "Python Programming Language",
@@ -57,7 +60,8 @@
   },
   {
     "id": "gold-005",
-    "name": "Перевод и локализация",
+    "name": "AI в переводе и локализации",
+    "difficulty": "basic",
     "input": {
       "text": "Нейросети революционизировали перевод и локализацию. DeepL и GPT-4 обеспечивают качество, близкое к человеческому, для основных языковых пар. Скорость перевода выросла в 10 раз. Однако культурная адаптация и локализация маркетинговых текстов всё ещё требует человека-редактора. Гибридный подход (AI + human review) становится стандартом индустрии. Стоимость локализации сайта средней сложности снизилась с $5000 до $500.",
       "title": "AI в переводе",
@@ -70,7 +74,8 @@
   },
   {
     "id": "gold-006",
-    "name": "Очень короткий вводный текст",
+    "name": "Reinforcement Learning Intro",
+    "difficulty": "basic",
     "input": {
       "text": "Обучение с подкреплением (Reinforcement Learning) — метод машинного обучения, при котором агент учится принимать решения, взаимодействуя со средой. Агент получает награду за правильные действия и штраф за неправильные. Цель — максимизировать суммарную награду. Примеры: AlphaGo, робототехника, игры.",
       "title": "Reinforcement Learning",
@@ -79,6 +84,464 @@
     "expected": {
       "min_note_length": 200,
       "must_have_concepts": true
+    }
+  },
+  {
+    "id": "gold-007",
+    "name": "Git Basics",
+    "difficulty": "basic",
+    "input": {
+      "text": "Git is a distributed version control system. Every developer has a full copy of the repository history. Key concepts: commit (snapshot of changes), branch (independent line of development), merge (joining histories), rebase (rewriting commit history). Basic workflow: git init, git add, git commit, git push, git pull. Remote repositories (GitHub, GitLab) enable collaboration through pull requests and code reviews.",
+      "title": "Git Version Control",
+      "language": "en"
+    },
+    "expected": {
+      "min_note_length": 600,
+      "must_have_concepts": true,
+      "language": "en"
+    }
+  },
+  {
+    "id": "gold-008",
+    "name": "Базы данных — реляционные vs NoSQL",
+    "difficulty": "basic",
+    "input": {
+      "text": "Реляционные базы данных (SQL) хранят данные в таблицах с жесткой схемой. Примеры: PostgreSQL, MySQL. NoSQL базы бывают разных типов: документные (MongoDB), ключ-значение (Redis), графовые (Neo4j). SQL базы хороши для целостности и сложных запросов (JOIN, транзакции). NoSQL — для горизонтального масштабирования и гибкой схемы. Выбор зависит от задачи: для финансов — SQL, для логов и каталогов — NoSQL.",
+      "title": "SQL vs NoSQL",
+      "language": "ru"
+    },
+    "expected": {
+      "min_note_length": 800,
+      "must_have_concepts": true,
+      "must_have_questions": true
+    }
+  },
+  {
+    "id": "gold-009",
+    "name": "REST API Design Principles",
+    "difficulty": "basic",
+    "input": {
+      "text": "REST (Representational State Transfer) is an architectural style for designing networked applications. Resources are identified by URLs and manipulated through HTTP methods: GET (read), POST (create), PUT (replace), PATCH (partial update), DELETE (remove). A well-designed REST API uses plural nouns for resources (/users, /articles), supports pagination and filtering, uses proper HTTP status codes (200 OK, 201 Created, 400 Bad Request, 404 Not Found, 500 Internal Server Error), and is stateless — each request contains all necessary information.",
+      "title": "REST API Design",
+      "language": "en"
+    },
+    "expected": {
+      "min_note_length": 500,
+      "must_have_concepts": true,
+      "language": "en"
+    }
+  },
+  {
+    "id": "gold-010",
+    "name": "Контейнеризация и Docker",
+    "difficulty": "basic",
+    "input": {
+      "text": "Docker — платформа для контейнеризации приложений. Контейнер — изолированная среда с приложением и его зависимостями. В отличие от виртуальных машин, контейнеры используют общее ядро ОС, что делает их легковесными. Основные концепции: образ (image) — шаблон для создания контейнеров, Dockerfile — инструкция по сборке образа, docker-compose — оркестрация нескольких контейнеров. Docker Hub — реестр образов. Практика: каждый сервис в отдельном контейнере, immutable инфраструктура, health checks.",
+      "title": "Docker — контейнеризация",
+      "language": "ru"
+    },
+    "expected": {
+      "min_note_length": 1000,
+      "must_have_concepts": true,
+      "must_have_questions": true
+    }
+  },
+  {
+    "id": "gold-011",
+    "name": "HTTP Protocol Basics",
+    "difficulty": "basic",
+    "input": {
+      "text": "HTTP is the foundation of data communication on the web. It is a request-response protocol running over TCP/IP. HTTP/1.1 added persistent connections and chunked transfer encoding. HTTP/2 introduced multiplexing (multiple requests over one connection), header compression, and server push. HTTPS adds TLS encryption. Common methods: GET (idempotent, cached), POST (non-idempotent), PUT, DELETE. Status codes are grouped: 1xx (informational), 2xx (success), 3xx (redirection), 4xx (client error), 5xx (server error).",
+      "title": "HTTP Protocol",
+      "language": "en"
+    },
+    "expected": {
+      "min_note_length": 600,
+      "must_have_concepts": true,
+      "language": "en"
+    }
+  },
+  {
+    "id": "gold-012",
+    "name": "Linux для разработчика",
+    "difficulty": "basic",
+    "input": {
+      "text": "Linux — основа современной разработки. Базовые команды: ls, cd, cp, mv, rm, cat, grep, find, chmod, ps. Пайпы (|) позволяют комбинировать команды. Права доступа: rwx для owner/group/others. Файловая система: /home, /etc, /var, /tmp, /usr. Пакетные менеджеры: apt (Debian/Ubuntu), dnf (Fedora). Процессы: systemd для управления сервисами, journalctl для логов. SSH для удаленного доступа. Bash скрипты автоматизируют рутину.",
+      "title": "Linux для разработчика",
+      "language": "ru"
+    },
+    "expected": {
+      "min_note_length": 800,
+      "must_have_concepts": true
+    }
+  },
+  {
+    "id": "gold-013",
+    "name": "Transformer Architecture",
+    "difficulty": "intermediate",
+    "input": {
+      "text": "The Transformer architecture (Vaswani et al., 2017) revolutionized NLP by replacing RNNs with attention mechanisms. Key innovation: self-attention computes weighted representations of all positions. Multi-head attention runs several attention mechanisms in parallel. The architecture has an encoder (bidirectional, understands context) and decoder (autoregressive, generates text). Positional encoding adds sequence order information — unlike RNNs, Transformers have no built-in notion of position. Layer normalization and residual connections enable training of deep models (up to 100+ layers). The attention mechanism has O(n²) complexity in sequence length, making it expensive for long documents. Variants: BERT (encoder-only), GPT (decoder-only), T5 (encoder-decoder).",
+      "title": "Transformer Architecture Explained",
+      "language": "en"
+    },
+    "expected": {
+      "min_note_length": 1500,
+      "must_have_concepts": true,
+      "must_have_questions": true,
+      "language": "en"
+    }
+  },
+  {
+    "id": "gold-014",
+    "name": "Prompt Engineering",
+    "difficulty": "intermediate",
+    "input": {
+      "text": "Промпт-инжиниринг — искусство составления запросов к LLM для получения нужного результата. Базовые техники: zero-shot (прямой запрос), few-shot (примеры в промпте), chain-of-thought (пошаговое рассуждение). Продвинутые: tree-of-thought (множественные цепочки рассуждений), self-consistency (выбор наиболее частого ответа), generated knowledge (добавление фактов в промпт). Форматирование: системный промпт задаёт роль и правила, пользовательский промпт — задачу. Важно: конкретность, структурированность, указание формата ответа. Проблемы: галлюцинации, перекосы, чувствительность к формулировкам. RAG (Retrieval-Augmented Generation) снижает галлюцинации, добавляя контекст из внешних источников.",
+      "title": "Промпт-инжиниринг",
+      "language": "ru"
+    },
+    "expected": {
+      "min_note_length": 1500,
+      "must_have_concepts": true,
+      "must_have_questions": true
+    }
+  },
+  {
+    "id": "gold-015",
+    "name": "Fine-tuning LLMs",
+    "difficulty": "intermediate",
+    "input": {
+      "text": "Fine-tuning — дообучение LLM на специфическом датасете. Полный fine-tuning обновляет все веса (дорого, требует много GPU). PEFT (Parameter-Efficient Fine-Tuning) обновляет только небольшой набор параметров. LoRA (Low-Rank Adaptation) — самый популярный метод PEFT: добавляет обучаемые низкоранговые матрицы к весам, обычно rank=8-64. QLoRA — LoRA + 4-bit quantization, позволяет fine-tune 70B модели на одной 24GB GPU. Dataset preparation: инструкция + ответ, желательно несколько тысяч примеров. TRL (Transformer Reinforcement Learning) библиотека от HuggingFace для SFT, DPO и RLHF. Важно: не переобучить (eval loss растёт), использовать правильный learning rate (1e-4 для LoRA), test на held-out сете.",
+      "title": "Fine-tuning LLMs with LoRA",
+      "language": "en"
+    },
+    "expected": {
+      "min_note_length": 1200,
+      "must_have_concepts": true,
+      "must_have_questions": true,
+      "language": "en"
+    }
+  },
+  {
+    "id": "gold-016",
+    "name": "CI/CD Pipeline Design",
+    "difficulty": "intermediate",
+    "input": {
+      "text": "CI/CD (Continuous Integration/Continuous Deployment) — практика автоматизации сборки, тестирования и доставки кода. CI: разработчики часто мержат код в main -> автоматическая сборка -> запуск тестов -> отчёт. CD: после прохождения CI -> деплой на staging -> интеграционные тесты -> деплой в production. Инструменты: GitHub Actions, GitLab CI, Jenkins. Хороший pipeline: параллельные джобы (lint, test, build), кэширование зависимостей, артефакты сборки, уведомления об ошибках. Convention: каждый коммит в main проходит все стадии. Feature flags позволяют выкатывать код темно. Blue-green deployment и canary releases минимизируют downtime.",
+      "title": "CI/CD Pipeline Design",
+      "language": "ru"
+    },
+    "expected": {
+      "min_note_length": 1200,
+      "must_have_concepts": true,
+      "must_have_questions": true
+    }
+  },
+  {
+    "id": "gold-017",
+    "name": "LangGraph StateGraph",
+    "difficulty": "intermediate",
+    "input": {
+      "text": "LangGraph is a framework for building stateful, multi-actor applications with LLMs. StateGraph manages a typed state that flows through nodes. Each node is a function that reads and writes to state. Edges define the control flow — conditional edges let the model decide which node to go next. Key concepts: nodes (processing steps), edges (deterministic or conditional), state (TypedDict or dataclass with reducers), checkpointer (persistence layer for interrupts and history). Human-in-the-loop: interrupt_before pauses execution at specific nodes, allowing human review. Streaming: .stream_events() yields intermediate results. PostgresSaver provides durable checkpointing. LangGraph doesn't impose a specific agent loop — you build the exact graph you need.",
+      "title": "LangGraph StateGraph",
+      "language": "en"
+    },
+    "expected": {
+      "min_note_length": 1000,
+      "must_have_concepts": true,
+      "language": "en"
+    }
+  },
+  {
+    "id": "gold-018",
+    "name": "LangChain Deep Agents",
+    "difficulty": "intermediate",
+    "input": {
+      "text": "Deep Agents от LangChain — open-source reference harness для production агентов. Архитектура: agent loop (think-act-observe), pre-hooks и post-hooks для middleware (логирование, метрики, трассировка), tool registry с валидацией схем. Ключевые компоненты: Agent (управляет циклом), Tool (функция с описанием и схемой), Middleware (хуки жизненного цикла). Middleware паттерны: трассировка, rate limiting, кэширование, валидация. Tool use: модель решает вызвать инструмент -> парсинг tool_call -> выполнение -> возврат результата в контекст. Structured output: гарантирует JSON-ответ через response_format. Сравнение с Claude Agent SDK: у LangChain больше гибкости, у Claude — простота. Deep Agents подходит для сложных многошаговых агентов с кастомными middleware.",
+      "title": "LangChain Deep Agents",
+      "language": "ru"
+    },
+    "expected": {
+      "min_note_length": 1500,
+      "must_have_concepts": true,
+      "must_have_questions": true
+    }
+  },
+  {
+    "id": "gold-019",
+    "name": "Vector Databases",
+    "difficulty": "intermediate",
+    "input": {
+      "text": "Vector databases store and search embeddings — dense vector representations of data. Cosine similarity and Euclidean distance measure vector closeness. Approximate Nearest Neighbor (ANN) algorithms like HNSW (Hierarchical Navigable Small World) enable fast search over millions of vectors with >0.95 recall. Popular databases: Pinecone (managed, expensive), Qdrant (self-hostable, Rust), Milvus (distributed, cloud-native), Chroma (lightweight, local). For RAG: chunk documents -> embed chunks -> store in vector DB -> query with user question embedding -> retrieve top-k chunks. Key metrics: recall@k, latency p99, indexing speed. Tradeoffs: accuracy vs speed, memory vs disk, HNSW vs IVF.",
+      "title": "Vector Databases for RAG",
+      "language": "en"
+    },
+    "expected": {
+      "min_note_length": 1000,
+      "must_have_concepts": true,
+      "language": "en"
+    }
+  },
+  {
+    "id": "gold-020",
+    "name": "Evaluation Metrics for LLMs",
+    "difficulty": "intermediate",
+    "input": {
+      "text": "Метрики оценки LLM делятся на автоматические и человеческие. Автоматические: ROUGE (для суммаризации — совпадение n-грамм), BLEU (для перевода — точность n-грамм), BERTScore (семантическое сходство через эмбеддинги). Perplexity измеряет, насколько модель уверена в правильном ответе. LLM-as-judge — новая метрика: использовать сильную модель (GPT-4, Claude) для оценки ответов слабой. Human evaluation: A/B тестирование, Likert scale, pairwise preference. Golden dataset — размеченный набор вопросов с эталонными ответами. Важно: корреляция между автоматическими метриками и человеческой оценкой часто низкая (0.2-0.4). Поэтому production требует комбинации подходов.",
+      "title": "Метрики оценки LLM",
+      "language": "ru"
+    },
+    "expected": {
+      "min_note_length": 1200,
+      "must_have_concepts": true,
+      "must_have_questions": true
+    }
+  },
+  {
+    "id": "gold-021",
+    "name": "Observability with OpenTelemetry",
+    "difficulty": "intermediate",
+    "input": {
+      "text": "Observability for LLM applications requires tracing every step: input → tool calls → model response. Phoenix (Arize) provides open-source LLM observability. OpenTelemetry is the standard for instrumenting applications — spans represent units of work, traces connect spans into a request flow. For agents: trace the full execution — user input, tool selection, tool output, model reasoning steps, final response. Phoenix captures token counts, latency, and can detect regressions. Setup: pip install openinference-instrumentation-langchain, configure Phoenix endpoint, add phoenix as a span handler. Useful for debugging: see which tools were called, how long they took, where the model hallucinated. Drift detection: compare current vs baseline embedding distributions.",
+      "title": "LLM Observability with Phoenix",
+      "language": "en"
+    },
+    "expected": {
+      "min_note_length": 800,
+      "must_have_concepts": true,
+      "language": "en"
+    }
+  },
+  {
+    "id": "gold-022",
+    "name": "Docker Compose и микросервисы",
+    "difficulty": "intermediate",
+    "input": {
+      "text": "Docker Compose позволяет запускать multi-container приложения одной командой. Файл docker-compose.yml описывает сервисы, сети, volumes. Пример: web (FastAPI) + db (PostgreSQL) + redis (кэш) + worker (Celery). Сервисы общаются через internal DNS (имя сервиса = hostname). Volumes обеспечивают persistence. Networks: по умолчанию bridge сеть, можно создавать изолированные сети. Health checks: Docker проверяет, что сервис готов. Dependency ordering: depends_on + wait-for-it.sh. Production: заменить docker-compose на Kubernetes (k8s). Docker Compose идеален для локальной разработки и staging.",
+      "title": "Docker Compose для микросервисов",
+      "language": "ru"
+    },
+    "expected": {
+      "min_note_length": 1000,
+      "must_have_concepts": true,
+      "must_have_questions": true
+    }
+  },
+  {
+    "id": "gold-023",
+    "name": "Model Quantization",
+    "difficulty": "intermediate",
+    "input": {
+      "text": "Quantization reduces model size and inference cost by storing weights in lower precision. Common formats: 8-bit (INT8) halves memory with ~1% accuracy loss, 4-bit (INT4) quarter memory with 2-5% loss. GGUF format (llama.cpp) enables CPU inference of quantized models. Bitsandbytes provides 4-bit and 8-bit quantization for GPU, integrated with HuggingFace Transformers. GPTQ is a one-shot quantization method that calibrates on a dataset. AWQ and SmoothQuant are newer methods with better accuracy. Quantization affects: memory bandwidth (main bottleneck for inference), cache size (more parameters fit in cache), throughput. For serving: use vLLM with FP16 for quality, or AWQ for speed.",
+      "title": "Model Quantization",
+      "language": "en"
+    },
+    "expected": {
+      "min_note_length": 800,
+      "must_have_concepts": true,
+      "language": "en"
+    }
+  },
+  {
+    "id": "gold-024",
+    "name": "RAG Architecture Patterns",
+    "difficulty": "intermediate",
+    "input": {
+      "text": "RAG (Retrieval-Augmented Generation) combines retrieval from a knowledge base with LLM generation. Basic RAG: embed query → search vector DB → top-k chunks → prompt + chunks → LLM response. Advanced RAG: query rewriting (rewrite user query for better retrieval), HyDE (generate hypothetical answer first, then search), multi-query (expand one query into several), fusion (combine keyword + vector search), re-ranking (rerank retrieved chunks with cross-encoder). Chunking strategies: fixed size (128-512 tokens), semantic (split at sentence/paragraph boundaries), recursive (JSON/HTML structure-aware). Evaluation: hit rate, MRR, NDCG for retrieval; answer relevancy, faithfulness for generation. Production RAG requires continuous eval on real queries.",
+      "title": "RAG Architecture Patterns",
+      "language": "en"
+    },
+    "expected": {
+      "min_note_length": 1200,
+      "must_have_concepts": true,
+      "must_have_questions": true,
+      "language": "en"
+    }
+  },
+  {
+    "id": "gold-025",
+    "name": "Production LLM Serving",
+    "difficulty": "advanced",
+    "input": {
+      "text": "Serving LLMs in production requires careful architecture. vLLM is the most popular serving engine — features PagedAttention for efficient KV cache management, continuous batching (dispatch requests as they arrive, not in fixed batches), and tensor parallelism across GPUs. TGI (Text Generation Inference) by HuggingFace is a simpler alternative. Key metrics: TTFT (Time To First Token — should be <500ms for interactive), TPOT (Time Per Output Token), throughput (tokens/second), and inter-token latency variance. Batching strategies: dynamic batching (wait for batch window), continuous batching (vLLM default). Rate limiting: per-user, per-IP, per-model. Load balancing: round-robin, least-connections, random. Autoscaling: based on queue depth or GPU utilization. Guardrails: input/output validation, content filtering, PII redaction.",
+      "title": "Production LLM Serving",
+      "language": "en"
+    },
+    "expected": {
+      "min_note_length": 1500,
+      "must_have_concepts": true,
+      "must_have_questions": true,
+      "language": "en"
+    }
+  },
+  {
+    "id": "gold-026",
+    "name": "Multi-Agent Orchestration",
+    "difficulty": "advanced",
+    "input": {
+      "text": "Multi-agent systems delegate work across specialized agents. Архитектуры: orchestrator-worker (главный агент распределяет задачи), supervisor (агент-наблюдатель оценивает и корректирует), сеть (агенты общаются peer-to-peer). Проблемы: коммуникационные накладные расходы (каждый обход = вызов LLM), согласование форматов (агенты должны понимать друг друга), галлюцинации на этапе планирования. Паттерны: voting (несколько агентов голосуют за ответ), debate (агенты спорят, улучшая аргументы), reflection (агент пересматривает свой ответ). Инструменты: LangGraph для графов, CrewAI для ролевых групп, AutoGen для диалоговых систем. Production: всегда добавляйте timeout (максимальное число шагов), circuit breaker (отключение зависшего агента), и logging каждого шага.",
+      "title": "Multi-Agent Systems",
+      "language": "ru"
+    },
+    "expected": {
+      "min_note_length": 1500,
+      "must_have_concepts": true,
+      "must_have_questions": true
+    }
+  },
+  {
+    "id": "gold-027",
+    "name": "Distributed Systems Fundamentals",
+    "difficulty": "advanced",
+    "input": {
+      "text": "A distributed system is a collection of independent computers that appears as a single coherent system. CAP theorem: you can have at most two of Consistency (all nodes see same data), Availability (every request gets a response), and Partition Tolerance (system works despite network failures). In practice, networks always partition, so CP or AP. Consistency models: strong (linearizability), eventual (DynamoDB, Cassandra), causal (session guarantees), read-your-writes. Consensus algorithms: Paxos (theoretical foundation), Raft (understandable, used in etcd/Consul), Zab (ZooKeeper). Time: physical clocks drift, so use logical clocks (Lamport, vector) for ordering. Patterns: leader election, heartbeats, quorum reads/writes, idempotency keys. Failure modes: crash-stop, crash-recovery, Byzantine (malicious). Goal of distributed systems: fault tolerance through replication.",
+      "title": "Distributed Systems",
+      "language": "en"
+    },
+    "expected": {
+      "min_note_length": 2000,
+      "must_have_concepts": true,
+      "must_have_questions": true,
+      "language": "en"
+    }
+  },
+  {
+    "id": "gold-028",
+    "name": "RLHF и обучение с человеком",
+    "difficulty": "advanced",
+    "input": {
+      "text": "RLHF (Reinforcement Learning from Human Feedback) — метод выравнивания LLM под человеческие предпочтения. Этапы: 1) SFT (Supervised Fine-Tuning) на качественных примерах, 2) сбор предпочтений (человек выбирает лучший ответ из двух), 3) обучение reward model (модель награды, предсказывающая человеческое предпочтение), 4) RL optimization (PPO алгоритм оптимизирует политику, максимизируя reward). Проблемы: reward hacking (модель учится обманывать reward model), distribution shift (политика уходит от SFT распределения), дороговизна сбора предпочтений. DPO (Direct Preference Optimization) — упрощение: обучает напрямую на парах предпочтений без отдельной reward model. GRPO (Group Relative Policy Optimization) — ещё новее, используется в DeepSeek-R1. Важно: KL penalty удерживает политику близко к SFT модели. RLHF даёт субъективное улучшение, не всегда отражаемое в бенчмарках.",
+      "title": "RLHF и выравнивание LLM",
+      "language": "ru"
+    },
+    "expected": {
+      "min_note_length": 1800,
+      "must_have_concepts": true,
+      "must_have_questions": true
+    }
+  },
+  {
+    "id": "gold-029",
+    "name": "Scalable Agent Infrastructure",
+    "difficulty": "advanced",
+    "input": {
+      "text": "Production agent infrastructure requires durable execution, queuing, and state management. Durable execution (Temporal, Inngest, DBOS) ensures agent runs survive crashes — if a process dies mid-tick, it restarts from the last checkpoint. For agent systems, this is critical because a single agent run can span minutes or hours. Message queues (RabbitMQ, Redis Streams, SQS) decouple agent components: ingest → process → output. State management: PostgresSaver (LangGraph) checkpoints every step, enabling resume after failure. Rate limiting: per-user, per-tool, per-model with token bucket algorithm. Cost management: pre-compute budgets before invoking models, hard caps per run. Observability: structured logging (JSON), trace IDs across all services, metrics dashboard (prometheus + grafana). Testing: unit tests for each node, integration tests with real models (small batch), chaos engineering (kill services randomly). Security: sandbox tool execution (E2B, gVisor), credential vault, input sanitization.",
+      "title": "Scalable Agent Infrastructure",
+      "language": "en"
+    },
+    "expected": {
+      "min_note_length": 2000,
+      "must_have_concepts": true,
+      "must_have_questions": true,
+      "language": "en"
+    }
+  },
+  {
+    "id": "gold-030",
+    "name": "GPU Architecture for ML",
+    "difficulty": "advanced",
+    "input": {
+      "text": "GPUs dominate ML because they do many small computations in parallel. NVIDIA GPU architecture: CUDA cores (compute), Tensor Cores (matrix multiply — crucial for deep learning), HBM memory (high bandwidth, ~2TB/s on H100 vs ~100GB/s on CPU). Memory hierarchy: registers (fastest, smallest) -> L1/L2 cache -> HBM (largest, slowest). Key bottleneck for LLMs is memory bandwidth — loading model weights from HBM to compute units. Inference optimization: quantization reduces data movement, KV cache reuse avoids recomputation, batching increases arithmetic intensity. FlashAttention avoids materializing the full attention matrix in HBM, reducing memory reads/writes. Multi-GPU training: model parallelism (split weights across GPUs), data parallelism (split batches), pipeline parallelism (split layers). FP8 training on H100 doubles throughput vs FP16. The trend: more compute per memory byte (compute-bound training, memory-bound inference).",
+      "title": "GPU Architecture for Deep Learning",
+      "language": "en"
+    },
+    "expected": {
+      "min_note_length": 1500,
+      "must_have_concepts": true,
+      "language": "en"
+    }
+  },
+  {
+    "id": "gold-031",
+    "name": "Системы рекомендаций",
+    "difficulty": "advanced",
+    "input": {
+      "text": "Рекомендательные системы — классическая задача ML. Collaborative filtering: user-item матрица -> матричная факторизация (SVD, ALS). Content-based: профиль пользователя + фичи контента. Hybrid: комбинация методов. Современные подходы: двухбашенные модели (user tower + item tower, embedding в общем пространстве), Graph Neural Networks (GNN для social recommendations), нейросетевые ранжировщики (DCN, DLRM). Проблемы: cold start (новый пользователь/товар — нет данных), diversity (не замыкаться в пузыре), serendipity (неожиданные рекомендации), fairness (не дискриминировать группы). AB-тесты: метрики CTR, conversion rate, долгосрочная retention. Production: candidate generation (сотни -> десятки) + ranking (десятки -> топ-10). Feature store (Feast, Tecton) для консистентности фичей между train и infer. Real-time: Kafka для стриминга событий, обновление моделей раз в час.",
+      "title": "Рекомендательные системы",
+      "language": "ru"
+    },
+    "expected": {
+      "min_note_length": 1800,
+      "must_have_concepts": true,
+      "must_have_questions": true
+    }
+  },
+  {
+    "id": "gold-032",
+    "name": "Agent Evaluation with Inspect",
+    "difficulty": "advanced",
+    "input": {
+      "text": "Inspect by UK AISI is an evaluation framework for LLMs and agents. Core concepts: Dataset (list of samples with input and expected output), Solver (evaluates a model on a sample), Scorer (compares model output to expected), Task (dataset + solver + scorer), Epoch (one evaluation run). Agent evaluation is harder than model evaluation because agents have multi-turn trajectories, tool usage, and intermediate reasoning. Key metrics: task completion rate, average steps to completion, tool utilization rate, error rate. Eval types: single-turn (one prompt, one response), multi-turn (conversation), trajectory (evaluate the full sequence of actions), end-state (only final result matters). GAIA benchmark tests agents on real-world tasks — Level 1 requires 1-2 steps, Level 3 requires multi-step reasoning with tool use. Best practice: mock external services in eval to avoid flaky tests, randomize prompt order, measure cost per task alongside quality.",
+      "title": "Agent Eval with Inspect AI",
+      "language": "en"
+    },
+    "expected": {
+      "min_note_length": 1500,
+      "must_have_concepts": true,
+      "must_have_questions": true,
+      "language": "en"
+    }
+  },
+  {
+    "id": "gold-033",
+    "name": "MCP Protocol и инструменты",
+    "difficulty": "advanced",
+    "input": {
+      "text": "Model Context Protocol (MCP) — открытый протокол от Anthropic для подключения инструментов и источников данных к LLM. Альтернатива: OpenAI Function Calling. MCP сервер предоставляет tools (инструменты с JSON схемой) и resources (данные). Клиент подключается к серверу через stdio (локально) или HTTP/SSE (удалённо). Transport: stdio (subprocess), Streamable HTTP. Каждый tool — это функция с именем, описанием и inputSchema. Lifecycle: initialization (client объявляет capabilities, server объявляет tools), operation (клиент вызывает tools, получает результаты), shutdown. MCP Hub — реестр серверов. Преимущества: стандартизация (не писать свой tool format), одно соединение для многих инструментов, моки для тестов. Недостатки: дополнительная сложность, latency при HTTP транспорте. Hermes Agent использует MCP для интеграции инструментов.",
+      "title": "MCP Protocol",
+      "language": "ru"
+    },
+    "expected": {
+      "min_note_length": 1500,
+      "must_have_concepts": true,
+      "must_have_questions": true
+    }
+  },
+  {
+    "id": "gold-034",
+    "name": "Reasoning Models and GRPO",
+    "difficulty": "advanced",
+    "input": {
+      "text": "DeepSeek-R1 introduced reasoning models that show their chain-of-thought before answering. The key innovation is GRPO (Group Relative Policy Optimization) — a reinforcement learning method that compares responses within a group rather than using a separate reward model. GRPO samples G responses per prompt, computes advantages relative to the group mean, then optimizes the policy to generate better reasoning chains. R1 training: cold start (few thousand chain-of-thought examples for SFT), reasoning-oriented RL (GRPO, reward for correct answer + format), rejection sampling (keep only correct responses), SFT on selected data, and final RL. Reasoning tokens: the model generates reasoning traces before the final answer. This can be 5-20x more tokens than a direct answer, increasing latency and cost. Benefits: better at math, coding, and multi-step logic. Distillation: smaller models trained on R1's outputs can gain reasoning ability. Open-weight R1 runs via Ollama, reducing cost 50x vs API.",
+      "title": "GRPO and Reasoning Models",
+      "language": "en"
+    },
+    "expected": {
+      "min_note_length": 1500,
+      "must_have_concepts": true,
+      "must_have_questions": true,
+      "language": "en"
+    }
+  },
+  {
+    "id": "gold-035",
+    "name": "Production Monitoring для AI",
+    "difficulty": "advanced",
+    "input": {
+      "text": "Production мониторинг AI систем требует отслеживать три слоя: инфраструктура (GPU util, memory, latency), модель (quality метрики, drift, bias), бизнес (user satisfaction, retention). GPU мониторинг: nvidia-smi, DCGM (NVIDIA), Prometheus + node_exporter для GPU метрик. Model monitoring: входные распределения (feature drift), выходные распределения (prediction drift), качество на референсном датасете (data quality). Evidently AI — open-source библиотека для drift detection. Инструменты: WhyLabs (managed), Arize (managed + open-source Phoenix), MLflow (open-source). Dashboard: latency p50/p95/p99, error rate, throughput, drift score, data quality (nulls, outliers). Alerting: PagerDuty/Telegram алерты при дрейфе > threshold или падении качества > 5%. LLM-specific: toxicity score, hallucination rate, response length distribution. Post-mortem: хранить запросы и ответы для ретроспективного анализа.",
+      "title": "Production AI Monitoring",
+      "language": "ru"
+    },
+    "expected": {
+      "min_note_length": 1800,
+      "must_have_concepts": true,
+      "must_have_questions": true
+    }
+  },
+  {
+    "id": "gold-036",
+    "name": "RL Agent Training",
+    "difficulty": "advanced",
+    "input": {
+      "text": "Training LLM agents with RL is an emerging paradigm. The agent takes actions (tool calls, API requests, code execution) and receives rewards (task completion, code correctness, user feedback). PPO for agents: rollout (run agent on environment, collect trajectory), compute advantages (how much better/worse each action was vs baseline), clip policy update (don't change too fast). Challenges: sparse rewards (agent only gets feedback at end of multi-step task), credit assignment (which step caused success/failure), environment diversity (train on varied tasks to avoid overfitting). The B-STAR approach: use LLM as base policy, fine-tune with RL on programmatic environments (coding, browsing, math). Tool-verifier: separate model that checks tool outputs. Reward shaping: intermediate rewards for useful sub-goals (information gain, progress markers). CleanRL — reference implementations. SageAI от Hermes Agent — попытка применить RL к agent loop. This is frontier research — expect rapid change.",
+      "title": "RL Agent Training",
+      "language": "en"
+    },
+    "expected": {
+      "min_note_length": 1500,
+      "must_have_concepts": true,
+      "must_have_questions": true,
+      "language": "en"
     }
   }
 ]

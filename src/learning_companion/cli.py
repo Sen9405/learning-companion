@@ -96,6 +96,8 @@ def run_agent(
 
     # Compile agent
     checkpointer = _get_checkpointer()
+    if skip_hitl:
+        checkpointer = None
     agent = compile_agent(checkpointer=checkpointer)
 
     # Run
@@ -181,6 +183,12 @@ def _save_to_obsidian(state: LearningState) -> None:
         if url:
             f.write(f"Source: {url}\n\n")
         f.write(note)
+        # Добавляем вопросы в Obsidian-файл, если есть
+        questions = state.get("questions_list", "")
+        if questions:
+            # Если вопросы уже в note — не дублируем
+            if questions not in note:
+                f.write(f"\n\n{questions}\n")
 
     print(f"[Obsidian] Saved: {filepath}")
 
@@ -387,6 +395,11 @@ def main() -> None:
     eval_p.add_argument("--threshold", type=float, default=0.5,
                         help="Minimum average score to pass")
 
+    # Inspect benchmark
+    ib_p = sub.add_parser("inspect-benchmark", help="Run Inspect AI benchmark on golden dataset")
+    ib_p.add_argument("--golden", default="tests/golden.json",
+                      help="Path to golden dataset JSON")
+
     args = parser.parse_args()
 
     if args.command == "run":
@@ -424,7 +437,16 @@ def main() -> None:
     elif args.command == "eval":
         from learning_companion.eval import run_eval
         report = run_eval(args.golden, args.threshold)
-        if report["avg_judge_score"] < args.threshold:
+        if report["overall_avg_score"] < args.threshold:
+            sys.exit(1)
+
+    elif args.command == "inspect-benchmark":
+        try:
+            from learning_companion.inspect_benchmark import run_inspect_benchmark
+            run_inspect_benchmark(args.golden)
+        except ImportError as e:
+            print("Error: inspect-ai not installed. Run: pip install inspect-ai")
+            print(f"  Details: {e}")
             sys.exit(1)
 
     else:
