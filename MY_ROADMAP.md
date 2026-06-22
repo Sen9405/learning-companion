@@ -174,7 +174,7 @@
 - [x] **Phase 0 (нед 1–3):** Прочитаны 4 статьи + написан итоговый документ
 - [ ] **Phase 1 (нед 4–7):** Tool-using агент (сырой + на SDK)
 - [ ] **Phase 2 (нед 8–12):** Deep Agent «исследователь» + Phoenix trace
-- [ ] **Phase 3 (нед 13–16):** Форк Deep Agents + post-mortem
+- [x] **Phase 3 (нед 13–16):** Структура + пакет + тесты + CI + eval gate ✅
 - [ ] **Phase 4 (нед 17–21):** Golden dataset + CI eval gate + Inspect benchmark
 - [ ] **Phase 5 (нед 22+):** Production hardening
 

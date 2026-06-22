@@ -48,4 +48,7 @@ def compile_agent(
 ) -> Any:
     """Compile the agent with optional PostgresSaver persistence."""
     graph = build_graph()
-    return graph.compile(checkpointer=checkpointer, interrupt_before=["analyst", "writer"])
+    if checkpointer:
+        return graph.compile(checkpointer=checkpointer, interrupt_before=["analyst", "writer"])
+    else:
+        return graph.compile(checkpointer=None)

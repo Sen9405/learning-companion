@@ -40,6 +40,7 @@ tracing = [
     "opentelemetry-exporter-otlp-proto-grpc>=1.28",
     "opentelemetry-instrumentation-requests>=0.49b",
 ]
+inspect = ["inspect-ai>=0.3"]
 all = [
     "yt-dlp>=2024",
     "PyMuPDF>=1.25",
@@ -47,6 +48,7 @@ all = [
     "opentelemetry-sdk>=1.28",
     "opentelemetry-exporter-otlp-proto-grpc>=1.28",
     "opentelemetry-instrumentation-requests>=0.49b",
+    "inspect-ai>=0.3",
 ]
 
 [project.urls]

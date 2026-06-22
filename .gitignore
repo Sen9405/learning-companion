@@ -18,6 +18,9 @@ venv/
 
 # OS
 .DS_Store
+
+# Generated reports
+eval_report.json
 Thumbs.db
 
 # Project specific

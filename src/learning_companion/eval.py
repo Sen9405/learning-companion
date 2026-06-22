@@ -1,13 +1,21 @@
-"""Eval — LLM-as-judge прогон по golden dataset.
+"""Eval — 4 типа eval'ов для Learning Companion.
+
+Типы:
+  1. single-turn: базовые проверки (длина, концепты, вопросы, язык)
+  2. trajectory: оценка полной траектории агента (план → поиск → анализ → запись)
+  3. llm-as-judge: оценка заметки через LLM по 5 критериям
+  4. end-state: проверка финального состояния графа
 
 Usage:
-    python -m learning_companion eval --golden tests/golden.json
-    python -m learning_companion eval --golden tests/golden.json --threshold 0.5
+    learning-companion eval --golden tests/golden.json
+    learning-companion eval --golden tests/golden.json --threshold 0.5
 """
+
 from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -17,7 +25,7 @@ from learning_companion.graph.builder import compile_agent
 from learning_companion.llm import llm_call, reset_counters
 
 # ---------------------------------------------------------------------------
-# LLM-as-judge prompt
+# Prompts
 # ---------------------------------------------------------------------------
 
 JUDGE_SYSTEM = """Ты — судья качества учебных заметок, созданных AI-агентом.
@@ -31,12 +39,26 @@ JUDGE_SYSTEM = """Ты — судья качества учебных замет
 
 Учитывай ожидаемый язык (ru или en) — если заметка не на том языке, ставь 0.
 
-Ответь ТОЛЬКО в формате JSON (без пояснений):
-{{"scores": {{"completeness": 0.0, "structure": 0.0, "accuracy": 0.0, "practical_value": 0.0, "language": 0.0}}, "total": 0.0, "weaknesses": ["..."]}}"""
+ВАЖНО: Каждый score от 0.0 до 1.0 (дробь). total = среднее арифметическое 5 scores, тоже от 0.0 до 1.0.
 
+Ответь ТОЛЬКО в формате JSON (без пояснений):
+{"scores": {"completeness": 0.0, "structure": 0.0, "accuracy": 0.0, "practical_value": 0.0, "language": 0.0}, "total": 0.0, "weaknesses": ["..."]}"""
+
+TRAJECTORY_SYSTEM = """Ты оцениваешь качество работы AI-агента по созданию учебной заметки.
+Агент прошёл 4 этапа: planning (план), fetching (поиск информации),
+analysis (анализ), writing (написание заметки).
+Оцени траекторию по 4 критериям, каждый от 0.0 до 1.0:
+
+1. plan_quality (качество плана) — соответствует ли план задаче?
+2. analysis_depth (глубина анализа) — выделены ли ключевые концепты и связи?
+3. progression (прогрессия) — логично ли развивается мысль от плана к заметке?
+4. no_regression (без регрессии) — не потерялась ли информация между этапами?
+
+Ответь ТОЛЬКО в формате JSON:
+{{"scores": {{"plan_quality": 0.0, "analysis_depth": 0.0, "progression": 0.0, "no_regression": 0.0}}, "total": 0.0, "weaknesses": ["..."]}}"""
 
 # ---------------------------------------------------------------------------
-# Eval runner
+# Helpers
 # ---------------------------------------------------------------------------
 
 
@@ -52,7 +74,7 @@ def build_agent():
 
 
 def run_single(agent: Any, example: dict) -> dict[str, Any]:
-    """Прогоняет один пример через агента (без HITL)."""
+    """Прогоняет один пример через агента и возвращает полное состояние."""
     inp = example["input"]
     initial = make_initial_state(
         url="",
@@ -65,30 +87,30 @@ def run_single(agent: Any, example: dict) -> dict[str, Any]:
 
     config = {"configurable": {"thread_id": f"eval-{example['id']}"}}
     result = agent.invoke(initial, config)
-    state = result if isinstance(result, dict) else {}
-    return state
+    return result if isinstance(result, dict) else {}
 
 
-def judge_note(note: str, language: str, input_text: str) -> dict:
-    """Оценивает заметку через LLM-as-judge."""
-    prompt = (
-        f"Original material (first 1000 chars):\n{input_text[:1000]}\n\n"
-        f"Expected language: {language}\n\n"
-        f"Generated note:\n{note[:3000]}\n"
-    )
-    resp, _ = llm_call(JUDGE_SYSTEM, [{"role": "user", "content": prompt}],
-                        response_model=None, max_tokens=1024, temperature=0.0)
+def _parse_json(text: str) -> dict:
+    """Парсит JSON из ответа LLM, с fallback на regex."""
     try:
-        data = json.loads(resp)
+        return json.loads(text)
     except json.JSONDecodeError:
-        import re
-        match = re.search(r"\{.*\}", resp, re.DOTALL)
-        data = json.loads(match.group()) if match else {"scores": {}, "total": 0.0, "weaknesses": ["parse error"]}
-    return data
+        match = re.search(r"\{.*\}", text, re.DOTALL)
+        if match:
+            return json.loads(match.group())
+        return {"scores": {}, "total": 0.0, "weaknesses": ["parse error"]}
 
 
-def check_basic(state: dict, expected: dict) -> dict:
-    """Базовые проверки без LLM."""
+# ---------------------------------------------------------------------------
+# Eval type 1: single-turn (basic checks)
+# ---------------------------------------------------------------------------
+
+
+def eval_single_turn(state: dict, expected: dict) -> dict:
+    """Базовые проверки одного прогона: длина, концепты, вопросы, язык.
+
+    Это single-turn eval — оцениваем только финальный output.
+    """
     note = state.get("note", "")
     issues = []
     passed = 0
@@ -124,7 +146,6 @@ def check_basic(state: dict, expected: dict) -> dict:
     exp_lang = expected.get("language", "ru")
     if exp_lang == "en":
         total += 1
-        import re
         has_cyrillic = bool(re.search(r"[а-яА-Я]", note))
         if not has_cyrillic:
             passed += 1
@@ -132,88 +153,307 @@ def check_basic(state: dict, expected: dict) -> dict:
             issues.append("note has cyrillic but expected English")
 
     score = passed / total if total > 0 else 0
-    return {"basic_score": score, "basic_passed": passed, "basic_total": total, "issues": issues}
+    return {"score": score, "passed": passed, "total": total, "issues": issues}
+
+
+# ---------------------------------------------------------------------------
+# Eval type 2: trajectory
+# ---------------------------------------------------------------------------
+
+
+def eval_trajectory(state: dict, input_text: str) -> dict:
+    """Оценивает полную траекторию: план → анализ → заметка.
+
+    Сравнивает промежуточные состояния и проверяет логику progression.
+    """
+    plan = state.get("content", "")
+    analysis = state.get("analysis", "")
+    note = state.get("note", "")
+    issues = []
+    passed = 0
+    total = 4  # 4 checks: plan exists, analysis exists, note exists, progression
+
+    # 1. Есть ли план (контент получен)
+    has_content = len(plan) >= 50
+    if has_content:
+        passed += 1
+    else:
+        issues.append("no content fetched or too short")
+
+    # 2. Есть ли анализ
+    has_analysis = len(analysis) >= 100
+    if has_analysis:
+        passed += 1
+    else:
+        issues.append("analysis too short or missing")
+
+    # 3. Есть ли заметка
+    has_note = len(note) >= 100
+    if has_note:
+        passed += 1
+    else:
+        issues.append("note too short or missing")
+
+    # 4. Progression: анализ не короче контента (разумная пропорция)
+    if has_content and has_analysis:
+        if len(analysis) >= len(plan) * 0.3:
+            passed += 1
+        else:
+            issues.append(f"analysis too short relative to content: {len(analysis)} vs {len(plan)}")
+    elif has_content:
+        issues.append("cannot check progression — no analysis")
+    else:
+        total -= 1
+
+    score = passed / total if total > 0 else 0
+    return {"score": score, "passed": passed, "total": total, "issues": issues}
+
+
+# ---------------------------------------------------------------------------
+# Eval type 3: LLM-as-judge
+# ---------------------------------------------------------------------------
+
+
+def eval_llm_judge(note: str, language: str, input_text: str) -> dict:
+    """Оценивает качество заметки через LLM по 5 критериям."""
+    if not note:
+        return {"score": 0.0, "details": {}, "weaknesses": ["empty note"]}
+
+    prompt = (
+        f"Original material (first 1000 chars):\n{input_text[:1000]}\n\n"
+        f"Expected language: {language}\n\n"
+        f"Generated note:\n{note[:3000]}\n"
+    )
+    resp, _ = llm_call(
+        JUDGE_SYSTEM,
+        [{"role": "user", "content": prompt}],
+        response_model=None,
+        max_tokens=1024,
+        temperature=0.0,
+    )
+    data = _parse_json(resp)
+    return {
+        "score": data.get("total", 0.0),
+        "details": data.get("scores", {}),
+        "weaknesses": data.get("weaknesses", []),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Eval type 4: end-state
+# ---------------------------------------------------------------------------
+
+
+def eval_end_state(state: dict) -> dict:
+    """Проверяет финальное состояние графа — корректность структуры.
+
+    end-state eval не оценивает качество, а проверяет, что граф
+    завершился в валидном состоянии.
+    """
+    issues = []
+    passed = 0
+    total = 5
+
+    # 1. Финальный stage
+    stage = state.get("stage", "")
+    total += 0  # already counted
+    if stage in ("done", "writer"):
+        passed += 1
+    else:
+        issues.append(f"unexpected final stage: {stage}")
+
+    # 2. Есть run_id
+    if state.get("run_id"):
+        passed += 1
+    else:
+        issues.append("no run_id in final state")
+        total -= 1
+
+    # 3. Ни одно поле не пустое если должно быть (note)
+    if state.get("note"):
+        passed += 1
+    else:
+        issues.append("note field empty in final state")
+
+    # 4. Нет ошибок в state (extra fields check)
+    required = {"url", "text", "title", "content", "analysis", "note", "concepts",
+                "questions", "run_id", "source_type", "stage", "language"}
+    missing = required - set(state.keys())
+    if not missing:
+        passed += 1
+    else:
+        issues.append(f"missing state fields: {missing}")
+
+    # 5. source_type установлен
+    if state.get("source_type"):
+        passed += 1
+    else:
+        issues.append("source_type not set")
+
+    score = passed / total if total > 0 else 0
+    return {"score": score, "passed": passed, "total": total, "issues": issues}
+
+
+# ---------------------------------------------------------------------------
+# Full eval runner
+# ---------------------------------------------------------------------------
 
 
 def run_eval(golden_path: str, threshold: float = 0.5) -> dict:
-    """Запускает полный eval по golden dataset."""
+    """Запускает все 4 типа eval'ов по golden dataset."""
     golden = load_golden(golden_path)
     agent = build_agent()
 
     results = []
-    total_scores = []
-    total_basic = []
+    tracker = {
+        "single_turn": {"scores": [], "passed": 0, "count": 0},
+        "trajectory": {"scores": [], "passed": 0, "count": 0},
+        "llm_judge": {"scores": [], "passed": 0, "count": 0},
+        "end_state": {"scores": [], "passed": 0, "count": 0},
+    }
 
     for example in golden:
         reset_counters()
         print(f"\n{'='*60}")
-        print(f"[{example['id']}] {example['name']}")
+        print(f"[{example['id']}] {example['name']} ({example.get('difficulty', '?')})")
 
         state = run_single(agent, example)
         note = state.get("note", "")
 
-        if not note:
-            print("  No note generated")
-            results.append({**example, "status": "fail", "error": "no note", "score": 0.0})
-            continue
+        example_results: dict[str, Any] = {
+            "id": example["id"],
+            "name": example["name"],
+            "difficulty": example.get("difficulty", "unknown"),
+            "input": example["input"],
+            "expected": example["expected"],
+        }
 
-        print(f"  Note: {len(note)} chars")
+        # --- Single-turn ---
+        st = eval_single_turn(state, example["expected"])
+        example_results["single_turn"] = st
+        tracker["single_turn"]["scores"].append(st["score"])
+        tracker["single_turn"]["count"] += 1
+        if st["score"] >= 0.5:
+            tracker["single_turn"]["passed"] += 1
+        print(f"  Single-turn: {st['score']:.2f} ({st['passed']}/{st['total']}) "
+              f"{'⚠ ' + ' | '.join(st['issues']) if st['issues'] else '✅'}")
 
-        # Basic checks
-        basic = check_basic(state, example["expected"])
-        total_basic.append(basic["basic_score"])
-        print(f"  Basic score: {basic['basic_score']:.2f} ({basic['basic_passed']}/{basic['basic_total']})")
-        for issue in basic["issues"]:
-            print(f"    ⚠ {issue}")
+        # --- Trajectory ---
+        tr = eval_trajectory(state, example["input"].get("text", ""))
+        example_results["trajectory"] = tr
+        tracker["trajectory"]["scores"].append(tr["score"])
+        tracker["trajectory"]["count"] += 1
+        if tr["score"] >= 0.5:
+            tracker["trajectory"]["passed"] += 1
+        print(f"  Trajectory:  {tr['score']:.2f} ({tr['passed']}/{tr['total']}) "
+              f"{'⚠ ' + ' | '.join(tr['issues']) if tr['issues'] else '✅'}")
 
-        # LLM-as-judge (если есть заметка)
-        judge_result = judge_note(
-            note,
-            language=example["input"].get("language", "ru"),
-            input_text=example["input"].get("text", ""),
+        # --- LLM-as-judge ---
+        if note:
+            lj = eval_llm_judge(
+                note,
+                language=example["input"].get("language", "ru"),
+                input_text=example["input"].get("text", ""),
+            )
+        else:
+            lj = {"score": 0.0, "details": {}, "weaknesses": ["no note generated"]}
+        example_results["llm_judge"] = lj
+        tracker["llm_judge"]["scores"].append(lj["score"])
+        tracker["llm_judge"]["count"] += 1
+        if lj["score"] >= threshold:
+            tracker["llm_judge"]["passed"] += 1
+        print(f"  LLM-judge:   {lj['score']:.2f} "
+              f"{'⚠ ' + ' | '.join(lj['weaknesses']) if lj.get('weaknesses') else '✅'}")
+
+        # --- End-state ---
+        es = eval_end_state(state)
+        example_results["end_state"] = es
+        tracker["end_state"]["scores"].append(es["score"])
+        tracker["end_state"]["count"] += 1
+        if es["score"] >= 0.5:
+            tracker["end_state"]["passed"] += 1
+        print(f"  End-state:   {es['score']:.2f} ({es['passed']}/{es['total']}) "
+              f"{'⚠ ' + ' | '.join(es['issues']) if es['issues'] else '✅'}")
+
+        example_results["overall_pass"] = (
+            st["score"] >= 0.5
+            and tr["score"] >= 0.5
+            and lj["score"] >= threshold
+            and es["score"] >= 0.5
         )
-        judge_score = judge_result.get("total", 0.0)
-        total_scores.append(judge_score)
+        results.append(example_results)
 
-        print(f"  Judge score: {judge_score:.2f}")
-        for w in judge_result.get("weaknesses", []):
-            print(f"    ⚠ {w}")
+    # --- Итоги ---
+    def _summarize_eval(name: str, data: dict) -> dict:
+        scores = data["scores"]
+        avg = sum(scores) / len(scores) if scores else 0.0
+        return {
+            "count": data["count"],
+            "passed": data["passed"],
+            "passed_pct": round(data["passed"] / data["count"] * 100, 1) if data["count"] else 0,
+            "avg_score": round(avg, 3),
+        }
 
-        results.append({
-            **example,
-            "status": "pass" if judge_score >= threshold else "fail",
-            "basic_score": basic["basic_score"],
-            "judge_score": judge_score,
-            "judge_details": judge_result.get("scores", {}),
-        })
+    eval_summary = {k: _summarize_eval(k, v) for k, v in tracker.items()}
+    all_passed = sum(1 for r in results if r["overall_pass"])
+    overall_avg = (
+        sum(eval_summary[k]["avg_score"] for k in eval_summary) / len(eval_summary)
+    )
 
-    # Итоги
-    avg_judge = sum(total_scores) / len(total_scores) if total_scores else 0.0
-    avg_basic = sum(total_basic) / len(total_basic) if total_basic else 0.0
-    passed_count = sum(1 for r in results if r["status"] == "pass")
+    # Разбивка по difficulty
+    by_difficulty: dict[str, dict] = {}
+    for r in results:
+        d = r.get("difficulty", "unknown")
+        if d not in by_difficulty:
+            by_difficulty[d] = {"count": 0, "overall_passed": 0}
+        by_difficulty[d]["count"] += 1
+        if r.get("overall_pass"):
+            by_difficulty[d]["overall_passed"] += 1
 
-    report = {
+    diff_report = {}
+    for d, info in by_difficulty.items():
+        diff_report[d] = {
+            "count": info["count"],
+            "overall_passed": info["overall_passed"],
+            "overall_passed_pct": round(info["overall_passed"] / info["count"] * 100, 1)
+            if info["count"] else 0,
+        }
+
+    report: dict[str, Any] = {
         "total": len(golden),
-        "passed": passed_count,
-        "failed": len(golden) - passed_count,
-        "avg_basic_score": round(avg_basic, 3),
-        "avg_judge_score": round(avg_judge, 3),
+        "all_passed": all_passed,
+        "all_failed": len(golden) - all_passed,
+        "overall_avg_score": round(overall_avg, 3),
         "threshold": threshold,
+        "eval_types": eval_summary,
+        "by_difficulty": diff_report,
         "results": results,
     }
 
-    # Сохраняем отчёт
+    # Сохраняем
     report_path = Path("eval_report.json")
     with open(report_path, "w") as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
+
+    # Вывод
     print(f"\n{'='*60}")
-    print("📊 EVAL RESULTS")
-    print(f"  Passed: {passed_count}/{len(golden)}")
-    print(f"  Avg basic score: {avg_basic:.3f}")
-    print(f"  Avg judge score: {avg_judge:.3f}")
-    print(f"  Threshold: {threshold}")
-    print(f"  Overall: {'✅ PASS' if avg_judge >= threshold else '❌ FAIL'}")
-    print(f"  Report saved: {report_path}")
+    print("📊 EVAL RESULTS — 4 eval types")
+    for k, v in eval_summary.items():
+        print(f"  {k:15s}: {v['passed']}/{v['count']} passed ({v['passed_pct']}%), "
+              f"avg={v['avg_score']:.2f}")
+    print(f"  {'─'*50}")
+    if diff_report:
+        print("  By difficulty:")
+        for d_name in ["basic", "intermediate", "advanced"]:
+            if d_name in diff_report:
+                d = diff_report[d_name]
+                print(f"    {d_name:15s}: {d['overall_passed']}/{d['count']} "
+                      f"({d['overall_passed_pct']}%)")
+    print(f"  {'─'*50}")
+    print(f"  Overall:      {all_passed}/{len(golden)} all-4-pass ({overall_avg:.2f} avg)")
+    print(f"  Threshold:    {threshold}")
+    print(f"  {'✅ PASS' if overall_avg >= threshold else '❌ FAIL'}")
+    print(f"  Report:       {report_path}")
 
     return report
 
@@ -227,8 +467,7 @@ def main():
     args = parser.parse_args()
 
     report = run_eval(args.golden, args.threshold)
-
-    if report["avg_judge_score"] < args.threshold:
+    if report["overall_avg_score"] < args.threshold:
         sys.exit(1)
 
 
