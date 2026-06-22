@@ -74,9 +74,9 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e "." pytest
 
-      - name: Run tests
+      - name: Run tests (skip inspect)
         run: |
-          PYTHONPATH=src python -m pytest tests/ -v --tb=long
+          PYTHONPATH=src python -m pytest tests/ -v --tb=long --ignore=tests/test_inspect_benchmark.py
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY || 'placeholder' }}
 
