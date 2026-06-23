@@ -103,20 +103,38 @@ def run_agent(
     # Run
     config = {"configurable": {"thread_id": run_id}}
     result = agent.invoke(initial, config)
-
+    # Get final state
     state = result if isinstance(result, dict) else {}
 
     # Get final state
     final_note = state.get("note", "")
     questions = state.get("questions_list", "")
     analysis = state.get("analysis", "")
+    title = state.get("title", "Learning Note")
 
-    # Send results
     cost_info = get_cost()
     cost_str = (
         f"💰 Cost: ${cost_info['cost']:.4f} "
         f"({cost_info['prompt_tokens']}+{cost_info['completion_tokens']} tokens)"
     )
+
+    # Bot mode: print structured result to stdout, skip Telegram
+    bot_mode = os.environ.get("COMPANION_BOT_MODE", "") == "1"
+    if bot_mode:
+        import json
+        result_data = {
+            "title": title,
+            "url": url,
+            "note": final_note,
+            "questions": questions,
+            "analysis": analysis,
+            "run_id": run_id,
+            "cost": cost_info["cost"],
+            "tokens_in": cost_info["prompt_tokens"],
+            "tokens_out": cost_info["completion_tokens"],
+        }
+        print(json.dumps(result_data, ensure_ascii=False))
+        return {"run_id": run_id, "state": state, "cost": cost_info}
 
     notify_telegram(f"✅ Analysis complete!\n{cost_str}", run_id=run_id, stage="done")
 

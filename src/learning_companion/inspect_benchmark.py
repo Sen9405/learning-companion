@@ -93,7 +93,7 @@ def learning_companion_solver() -> Solver:
 
         # Создаём пример в формате golden.json
         example = {
-            "id": state.id or "unknown",
+            "id": state.sample_id or "unknown",
             "name": metadata.get("name", ""),
             "difficulty": metadata.get("difficulty", "unknown"),
             "input": {
@@ -128,7 +128,7 @@ def learning_companion_solver() -> Solver:
         state.metadata["single_turn_issues"] = st["issues"]
 
         # Output — финальная заметка (для логирования)
-        state.output.text = note[:2000] if note else "No note generated"
+        state.output.completion = note[:2000] if note else "No note generated"
 
         return state
 
@@ -140,12 +140,7 @@ def learning_companion_solver() -> Solver:
 # ---------------------------------------------------------------------------
 
 
-@scorer(
-    metrics={
-        "judge_score": [accuracy(), stderr()],
-        "single_turn_score": [accuracy(), stderr()],
-    }
-)
+@scorer(metrics=[])
 def learning_companion_scorer():
     """Scorer: оценивает результат работы агента."""
 
@@ -171,7 +166,7 @@ def learning_companion_scorer():
 
         return Score(
             value=overall,
-            answer=state.output.text[:500],
+            answer=state.output.completion[:500] if state.output.completion else "",
             explanation=explanation,
         )
 
@@ -208,18 +203,25 @@ def run_inspect_benchmark(golden_path: str = "tests/golden.json") -> dict:
 
     logs = eval(
         learning_companion_benchmark(golden=abs_path),
-        model="deepseek/deepseek-chat",
+        model="openai/deepseek-chat",
+        model_base_url="https://api.deepseek.com",
         log_dir=str(log_dir),
     )
 
     results = []
     for log_entry in logs:
-        if log_entry.results:
-            scores = log_entry.results.scores
-            for score_entry in scores:
-                results.append({
-                    "score": score_entry.score.value if hasattr(score_entry.score, 'value') else str(score_entry.score),
-                })
+        if log_entry.samples:
+            for sample in log_entry.samples:
+                if sample.scores:
+                    # Use scores dict (new API) — get the main scorer result
+                    scores_list = list(sample.scores.values()) if hasattr(sample.scores, "values") else []
+                    main_score = scores_list[0] if scores_list else None
+                    results.append({
+                        "sample_id": sample.id,
+                        "score": main_score.value if main_score and hasattr(main_score, "value") else "unknown",
+                        "judge_score": None,  # metadata available in sample.store
+                        "explanation": str(getattr(main_score, "explanation", "")),
+                    })
 
     total = len(results)
     passed = sum(1 for r in results if r.get("score") == "pass")

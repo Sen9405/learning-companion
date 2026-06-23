@@ -24,6 +24,8 @@ eval_report.json
 Thumbs.db
 
 # Project specific
+.env
+logs/
 *.db
 *.db-wal
 *.db-shm

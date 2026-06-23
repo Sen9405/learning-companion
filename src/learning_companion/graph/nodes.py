@@ -60,7 +60,7 @@ WRITER_SYSTEM = """Ты — ассистент-писатель. Создай у
 4. Основное содержание (подробное, со структурированными разделами)
 5. Связи и контекст (как это связано с другими темами)
 6. Практические выводы
-7. Вопросы для проверки знаний (5-7 вопросов с ответами под спойлерами)
+7. Вопросы для проверки знаний (5-7 вопросов для самопроверки)
 
 Формат: Markdown, язык: {language}.
 Используй ''' для inline кода, ### для подзаголовков.
@@ -273,7 +273,7 @@ def _exec_yt_dlp(url: str) -> str:
         if len(text) < 20:
             return "[Subtitles too short or empty]"
 
-        return text[:15000]
+        return text[:150000]
 
     except subprocess.TimeoutExpired:
         return "[YouTube fetch timed out]"
@@ -301,12 +301,12 @@ def _fetch_web(url: str) -> str:
             tag.decompose()
         text = soup.get_text(separator="\n", strip=True)
         # Ограничиваем длину
-        return text[:50000]
+        return text[:150000]
     except Exception as e:
         return f"[Web fetch error: {e}]"
 
 
-MAX_FETCH_CHARS = 60000
+MAX_FETCH_CHARS = 150000
 
 
 def _fetch_pdf(url: str) -> str:
@@ -493,16 +493,17 @@ def _parse_analyst_response(resp: str) -> dict:
 
 
 def _format_questions(questions: list[dict], language: str) -> str:
-    """Форматирует вопросы в Markdown."""
+    """Форматирует вопросы в Markdown (только вопросы, без ответов).
+
+    Ответы остаются в questions (raw list) для LTM, но в questions_list
+    их нет — пользователь получает только вопросы для самопроверки.
+    """
     if not questions:
         return ""
     lines = ["\n---\n### Вопросы для проверки знаний\n"]
     for i, q in enumerate(questions, 1):
         question = q.get("q", q.get("question", f"Вопрос {i}"))
-        answer = q.get("a", q.get("answer", ""))
         lines.append(f"{i}. {question}")
-        if answer:
-            lines.append(f"   ||{answer}||")
     return "\n".join(lines)
 
 
@@ -581,6 +582,6 @@ def writer_node(state: LearningState) -> dict[str, Any]:
 
     return {
         "note": note,
-        "questions_list": questions_section or state.get("questions_list", ""),
+        "questions_list": state.get("questions_list", ""),
         "stage": "done",
     }

@@ -40,6 +40,7 @@ tracing = [
     "opentelemetry-exporter-otlp-proto-grpc>=1.28",
     "opentelemetry-instrumentation-requests>=0.49b",
 ]
+telegram-bot = ["pyTelegramBotAPI>=4.30"]
 inspect = ["inspect-ai>=0.3"]
 all = [
     "yt-dlp>=2024",
@@ -48,6 +49,7 @@ all = [
     "opentelemetry-sdk>=1.28",
     "opentelemetry-exporter-otlp-proto-grpc>=1.28",
     "opentelemetry-instrumentation-requests>=0.49b",
+    "pyTelegramBotAPI>=4.30",
     "inspect-ai>=0.3",
 ]
 
@@ -58,6 +60,7 @@ Documentation = "https://github.com/sen/learning-companion#readme"
 
 [project.scripts]
 learning-companion = "learning_companion.cli:main"
+learning-companion-bot = "learning_companion.bot:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
