@@ -23,8 +23,6 @@ from inspect_ai.dataset import Sample
 from inspect_ai.scorer import (
     Score,
     scorer,
-    accuracy,
-    stderr,
     Target,
 )
 from inspect_ai.solver import (
