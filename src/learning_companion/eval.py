@@ -55,7 +55,7 @@ analysis (анализ), writing (написание заметки).
 4. no_regression (без регрессии) — не потерялась ли информация между этапами?
 
 Ответь ТОЛЬКО в формате JSON:
-{{"scores": {{"plan_quality": 0.0, "analysis_depth": 0.0, "progression": 0.0, "no_regression": 0.0}}, "total": 0.0, "weaknesses": ["..."]}}"""
+{"scores": {"plan_quality": 0.0, "analysis_depth": 0.0, "progression": 0.0, "no_regression": 0.0}, "total": 0.0, "weaknesses": ["..."]}"""
 
 # ---------------------------------------------------------------------------
 # Helpers
