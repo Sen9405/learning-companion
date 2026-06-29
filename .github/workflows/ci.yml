@@ -50,11 +50,7 @@ jobs:
         run: python -m pip install detect-secrets
 
       - name: Scan for secrets
-        run: |
-          detect-secrets scan --all-files \
-            --baseline .secrets.baseline \
-            --exclude-files '.venv/|__pycache__/|\.git/|node_modules/|\.pdf$|materials/|\.pytest_cache/|\.ruff_cache/' \
-            --fail-on-unaudited
+        run: python .github/scripts/verify_secrets_baseline.py
 
   test:
     name: Test
