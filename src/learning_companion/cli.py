@@ -531,7 +531,7 @@ def run_hardening_report(run_id: str | None = None) -> None:
     from learning_companion.ledger import RunLedger
     ledger = RunLedger(settings.run_ledger_db)
     report = build_hardening_report(settings=settings, ledger=ledger, run_id=run_id)
-    print(f"=== Hardening Report ===")
+    print("=== Hardening Report ===")
     if run_id:
         print(f"Run ID: {run_id}")
     print(f"Verdict: {report['verdict'].upper()}")
