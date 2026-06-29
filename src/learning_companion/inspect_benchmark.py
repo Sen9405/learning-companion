@@ -17,19 +17,62 @@ import json
 from pathlib import Path
 from typing import Any
 
-# Inspect импорты
-from inspect_ai import Task, eval, task
-from inspect_ai.dataset import Sample
-from inspect_ai.scorer import (
-    Score,
-    scorer,
-    Target,
-)
-from inspect_ai.solver import (
-    Solver,
-    TaskState,
-    solver,
-)
+# Inspect imports are optional: the core package and unit tests should remain
+# importable even when the optional `inspect-ai` extra is not installed.
+try:  # pragma: no cover - exercised implicitly when dependency exists
+    from inspect_ai import Task, eval, task
+    from inspect_ai.dataset import Sample
+    from inspect_ai.scorer import (
+        Score,
+        scorer,
+        Target,
+    )
+    from inspect_ai.solver import (
+        Solver,
+        TaskState,
+        solver,
+    )
+except ImportError:  # pragma: no cover - lightweight fallback for no extra
+    from dataclasses import dataclass, field
+
+    _INSPECT_IMPORT_ERROR = ImportError("inspect-ai is not installed; install learning-companion[inspect]")
+
+    @dataclass
+    class Sample:  # type: ignore[no-redef]
+        input: str
+        target: str
+        id: str
+        metadata: dict[str, Any] = field(default_factory=dict)
+
+    @dataclass
+    class Score:  # type: ignore[no-redef]
+        value: str
+        answer: str = ""
+        explanation: str = ""
+
+    @dataclass
+    class Task:  # type: ignore[no-redef]
+        dataset: list[Sample]
+        solver: Any
+        scorer: Any
+
+    Target = Any  # type: ignore
+    Solver = Any  # type: ignore
+    TaskState = Any  # type: ignore
+
+    def task(fn: Any) -> Any:  # type: ignore[no-redef]
+        return fn
+
+    def solver(fn: Any) -> Any:  # type: ignore[no-redef]
+        return fn
+
+    def scorer(*args: Any, **kwargs: Any) -> Any:  # type: ignore[no-redef]
+        def decorator(fn: Any) -> Any:
+            return fn
+        return decorator
+
+    def eval(*args: Any, **kwargs: Any) -> Any:  # type: ignore[no-redef]
+        raise _INSPECT_IMPORT_ERROR
 
 from learning_companion.eval import (
     build_agent,
@@ -201,7 +244,7 @@ def run_inspect_benchmark(golden_path: str = "tests/golden.json") -> dict:
 
     logs = eval(
         learning_companion_benchmark(golden=abs_path),
-        model="openai/deepseek-chat",
+        model="openai/deepseek-v4-flash",
         model_base_url="https://api.deepseek.com",
         log_dir=str(log_dir),
     )

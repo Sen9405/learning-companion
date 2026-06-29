@@ -141,6 +141,11 @@
 - Durable execution (Inngest / Temporal / LangGraph PostgresSaver)
 - Trace sampling + drift alerts
 
+**Sprint status:**
+- [x] Sprint 1 — cost controls, prompt cache, run ledger, CLI report
+- [x] Sprint 2 — per-run sandbox, sanitized subprocess env, credential redaction, untrusted document wrapper
+- [x] Sprint 3 — routing, alerts, final hardening verification ✅
+
 ✅ **Чекпоинт:** Агент, который переживает контакт с реальными пользователями.
 
 ---
@@ -175,13 +180,11 @@
 - [ ] **Phase 1 (нед 4–7):** Tool-using агент (сырой + на SDK)
 - [ ] **Phase 2 (нед 8–12):** Deep Agent «исследователь» + Phoenix trace
 - [x] **Phase 3 (нед 13–16):** Структура + пакет + тесты + CI + eval gate ✅
-- [ ] **Phase 4 (нед 17–21):** Golden dataset + CI eval gate + Inspect benchmark
-- [ ] **Phase 5 (нед 22+):** Production hardening
+- [x] **Phase 4 (нед 17–21):** Golden dataset + CI eval gate + Inspect benchmark ✅
+- [x] **Phase 5 (нед 22+):** Production hardening — Sprint 1–3 complete ✅
 
 ---
 
 ## 🎯 Следующий шаг (прямо сегодня)
 
-👉 **Прочитать** [Building Effective Agents by Anthropic](https://anthropic.com/research/building-effective-agents) — 15 минут чтения, с которых начинается весь путь.
-
-После прочтения — напиши в Telegram «прочитал», и я скажу, что делать дальше.
+👉 **Phase 5 Sprint 1–3 завершены.** Агент имеет: cost-контроль, prompt cache, ledger, sandbox, credential redaction, model routing, alerts, hardening CLI. При следующем запуске можно смотреть в сторону durable execution (LangGraph PostgresSaver в production), tracing (Phoenix/Inspect), или начинать проект с реальными пользователями.

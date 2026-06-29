@@ -11,7 +11,7 @@ from openai import OpenAI
 
 # ──────── Настройки ────────
 API_KEY = "sk-0ef79154289240c2a2743c50f44b625a"
-MODEL = "deepseek-chat"
+MODEL = "deepseek-v4-flash"
 BASE_URL = "https://api.deepseek.com"
 MAX_TURNS = 7
 

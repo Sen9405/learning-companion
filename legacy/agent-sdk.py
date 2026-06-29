@@ -48,7 +48,7 @@ def read_local_file(path: str, max_lines: int = 20):
 
 
 # ──────── Настройки ────────
-os.environ["OPENAI_API_KEY"] = "sk-0ef79154289240c2a2743c50f44b625a"
+os.environ["OPENAI_API_KEY"] = "***"
 os.environ["OPENAI_BASE_URL"] = "https://api.deepseek.com"
 
 # ──────── Создаём агента ────────

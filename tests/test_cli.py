@@ -7,7 +7,9 @@ from unittest.mock import patch
 
 import pytest
 
-from learning_companion.cli import main
+from learning_companion.cli import main, run_report
+from learning_companion.ledger import LlmCallRecord, RunLedger
+from learning_companion.settings import reset_settings_cache
 
 
 class TestCLIArgs:
@@ -147,3 +149,19 @@ class TestCLIArgs:
         testargs = ["learning-companion", "--help"]
         with patch.object(sys, "argv", testargs), pytest.raises(SystemExit):
             main()
+
+
+def test_run_report_prints_ledger_summary(tmp_path, monkeypatch, capsys):
+    ledger_db = tmp_path / "ledger.sqlite3"
+    monkeypatch.setenv("LC_RUN_LEDGER_DB", str(ledger_db))
+    reset_settings_cache()
+
+    ledger = RunLedger(ledger_db)
+    ledger.record_llm_call(LlmCallRecord("run-1", "planner", "deepseek-v4-flash", 10, 20, 0.001, 1.0, False, None))
+
+    run_report(limit=5)
+
+    output = capsys.readouterr().out
+    assert "LLM Ledger Report" in output
+    assert "Total calls: 1" in output
+    assert "planner" in output

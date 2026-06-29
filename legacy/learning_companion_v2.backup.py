@@ -42,7 +42,7 @@ except ImportError:
     OpenAI = None  # type: ignore
 
 DEEPSEEK_API_KEY = ""
-DEEPSEEK_MODEL = "deepseek-chat"
+DEEPSEEK_MODEL = "deepseek-v4-flash"
 
 # Цены DeepSeek-chat (US $ за 1M токенов)
 DEEPSEEK_INPUT_PRICE_PER_1M = 0.14
@@ -830,7 +830,7 @@ def span_wrapper(node_name: str, project_name: str = "Learning Companion"):
                         span.set_attribute(SpanAttributes.LLM_COST_PROMPT, cost["input_cost"])
                         span.set_attribute(SpanAttributes.LLM_COST_COMPLETION, cost["output_cost"])
                         span.set_attribute(SpanAttributes.LLM_PROVIDER, "deepseek")
-                        span.set_attribute(SpanAttributes.LLM_MODEL_NAME, "deepseek-chat")
+                        span.set_attribute(SpanAttributes.LLM_MODEL_NAME, DEEPSEEK_MODEL)
                     except ImportError:
                         pass
 

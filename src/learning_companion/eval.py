@@ -230,6 +230,8 @@ def eval_llm_judge(note: str, language: str, input_text: str) -> dict:
         response_model=None,
         max_tokens=1024,
         temperature=0.0,
+        stage="eval.judge",
+        cache=True,
     )
     data = _parse_json(resp)
     return {

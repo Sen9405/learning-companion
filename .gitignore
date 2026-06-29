@@ -21,6 +21,12 @@ venv/
 
 # Generated reports
 eval_report.json
+
+# Local Hermes config
+.hermes/
+
+# Build artifacts (Sprint HTML/JS/PDF)
+materials/
 Thumbs.db
 
 # Project specific

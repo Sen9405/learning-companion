@@ -10,8 +10,8 @@ from datetime import datetime
 import litellm
 
 # ──────── Настройки ────────
-os.environ["DEEPSEEK_API_KEY"] = "sk-0ef79154289240c2a2743c50f44b625a"
-MODEL = "deepseek/deepseek-chat"
+os.environ["DEEPSEEK_API_KEY"] = "***"
+MODEL = "deepseek/deepseek-v4-flash"
 MAX_TURNS = 7
 
 # ──────── Описание инструментов для модели ────────

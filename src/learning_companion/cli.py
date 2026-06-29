@@ -12,8 +12,11 @@ from learning_companion import __version__
 from learning_companion.graph import LearningState, make_initial_state
 from learning_companion.graph.builder import compile_agent
 from learning_companion.graph.tracing import setup_tracing
+from learning_companion.hardening import build_hardening_report
+from learning_companion.ledger import RunLedger
 from learning_companion.llm import get_cost, llm_call, reset_counters
 from learning_companion.memory import get_ltm
+from learning_companion.settings import get_settings
 from learning_companion.telegram import (
     notify_telegram,
     send_telegram,
@@ -366,7 +369,7 @@ def run_check(limit: int = 5) -> None:
             f"Title: {note.get('title', 'Untitled')}\n"
             f"Summary: {note.get('summary', '')[:2000]}"
         )
-        resp, _ = llm_call(system, [{"role": "user", "content": prompt}])
+        resp, _ = llm_call(system, [{"role": "user", "content": prompt}], stage="check.questions")
         all_questions.append(f"### {note.get('title', 'Untitled')}\n{resp}")
 
     if all_questions:
@@ -418,6 +421,15 @@ def main() -> None:
     ib_p.add_argument("--golden", default="tests/golden.json",
                       help="Path to golden dataset JSON")
 
+    # Report
+    report_p = sub.add_parser("report", help="Show LLM cost/cache ledger report")
+    report_p.add_argument("--run-id", default="", help="Optional run ID to scope the report")
+    report_p.add_argument("--limit", type=int, default=10, help="Number of recent calls to show")
+
+    # Hardening report (Sprint 3)
+    hrd_p = sub.add_parser("hardening-report", help="Run final hardening verification and print report")
+    hrd_p.add_argument("--run-id", default="", help="Optional run ID to scope alerts")
+
     args = parser.parse_args()
 
     if args.command == "run":
@@ -467,8 +479,79 @@ def main() -> None:
             print(f"  Details: {e}")
             sys.exit(1)
 
+    elif args.command == "report":
+        run_report(run_id=args.run_id or None, limit=args.limit)
+
+    elif args.command == "hardening-report":
+        run_hardening_report(run_id=args.run_id or None)
+
     else:
         parser.print_help()
+
+
+def run_report(run_id: str | None = None, limit: int = 10) -> None:
+    """Print a production cost/cache report from the persistent ledger."""
+    settings = get_settings()
+    ledger = RunLedger(settings.run_ledger_db)
+    summary = ledger.summary(run_id=run_id)
+    recent = ledger.recent_calls(limit=limit)
+
+    title = "LLM Ledger Report"
+    if run_id:
+        title += f" — run_id={run_id}"
+    print(title)
+    print("=" * len(title))
+    print(f"DB: {settings.run_ledger_db}")
+    print(f"Total calls: {summary['total_calls']}")
+    print(f"Prompt tokens: {summary['prompt_tokens']}")
+    print(f"Completion tokens: {summary['completion_tokens']}")
+    print(f"Total cost: ${summary['total_cost']:.6f}")
+    cache_rate = (summary['cache_hits'] / summary['total_calls'] * 100) if summary['total_calls'] else 0
+    print(f"Cache hits: {summary['cache_hits']} ({cache_rate:.1f}%)")
+    print(f"Errors: {summary['errors']}")
+    print(f"Average latency: {summary['avg_latency']:.3f}s")
+
+    rows = [row for row in recent if not run_id or row["run_id"] == run_id]
+    if not rows:
+        return
+
+    print("\nRecent calls:")
+    for row in rows:
+        marker = "cache" if row["cache_hit"] else "api"
+        print(
+            f"- #{row['id']} {row['run_id']} {row['stage']} [{marker}] "
+            f"tokens={row['prompt_tokens']}/{row['completion_tokens']} "
+            f"cost=${row['cost']:.6f} latency={row['latency']:.2f}s"
+        )
+
+
+def run_hardening_report(run_id: str | None = None) -> None:
+    """Print a full hardening verification report (Sprint 3)."""
+    settings = get_settings()
+    from learning_companion.ledger import RunLedger
+    ledger = RunLedger(settings.run_ledger_db)
+    report = build_hardening_report(settings=settings, ledger=ledger, run_id=run_id)
+    print(f"=== Hardening Report ===")
+    if run_id:
+        print(f"Run ID: {run_id}")
+    print(f"Verdict: {report['verdict'].upper()}")
+    print()
+    checks_pass = sum(1 for c in report["checks"] if c["status"] == "pass")
+    checks_fail = sum(1 for c in report["checks"] if c["status"] == "fail")
+    print(f"Checks: {checks_pass} pass / {checks_fail} fail")
+    for check in report["checks"]:
+        icon = "✅" if check["status"] == "pass" else "❌"
+        print(f"  {icon} {check['name']}: {check['detail']}")
+    alerts = report.get("alerts", [])
+    if alerts:
+        print(f"\nAlerts ({len(alerts)}):")
+        for alert in alerts:
+            icon = "🔴" if alert["severity"] == "critical" else "🟡"
+            print(f"  {icon} [{alert['code']}] {alert['message']}")
+    else:
+        print("\nAlerts: ✅ none")
+    print(f"\nSummary: {report['summary']['total_calls']} calls, "
+          f"${report['summary']['total_cost']:.6f}")
 
 
 if __name__ == "__main__":

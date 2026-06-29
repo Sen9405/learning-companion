@@ -282,6 +282,7 @@ def _evaluate_answer(
             [{"role": "user", "content": prompt}],
             max_tokens=1024,
             temperature=0.3,
+            stage="bot.answer_eval",
         )
 
         try:
